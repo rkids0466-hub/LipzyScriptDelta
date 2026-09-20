@@ -1,0 +1,2 @@
+# LipzyScriptDelta
+Steal an egg
