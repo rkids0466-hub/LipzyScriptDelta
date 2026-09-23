@@ -1,103 +1,458 @@
---// LIPZY HUB - UPDATE GUI
---// UI ONLY
-
+-- Services
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Stats = game:GetService("Stats")
+local LocalPlayer = Players.LocalPlayer
 
-local player = Players.LocalPlayer
-local gui = Instance.new("ScreenGui")
-gui.Name = "LipzyHub"
-gui.ResetOnSpawn = false
-gui.Parent = player:WaitForChild("PlayerGui")
+-- Daftar Script Hub
+local scriptList = {
+    {name = "LENON HUB", url = "https://raw.githubusercontent.com/lennonxscripts/lennonhubv3/refs/heads/main/stealanegg.lua"},
+    {name = "MIRANDA HUB", url = "https://raw.githubusercontent.com/miirandahub/loader/refs/heads/main/stealaeggs"},
+    {name = "SENA HUB", url = "https://raw.githubusercontent.com/senarblx/sena/refs/heads/main/senav3go"},
+    {name = "ALL SCRIPT", url = "https://flowauth.net/v1/loaders/e890aad1c32cda0a0e14d000aa06dd97.lua"},
+    {name = "BK's HUB", url = "https://api.luarmor.net/files/v4/loaders/9ee4edde227ac85f50872bf9e4226508.lua"},
+    {name = "HOSHI HUB", url = "https://hoshihub.site/loader.lua"},
+    {name = "PULSE HUB", url = "https://raw.githubusercontent.com/PulseZax/Loader/refs/heads/main/.lua"},
+    {name = "OXIDE HUB", url = "https://raw.githubusercontent.com/xulfo/Oxide-Loader/main/Main.lua"},
+    {name = "SKIBIDI HUB", url = "https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/Fn-stealanegg.lua"},
+    {name = "NEVA HUB", url = "https://raw.githubusercontent.com/VEZ2/NEVAHUB/main/2"},
+    {name = "LKZ HUB", url = "https://raw.githubusercontent.com/LucasggkX/LKZ-Hub/refs/heads/main/Loader.lua"},
+    {name = "VINCITORE HUB", url = "https://raw.githubusercontent.com/tutorkah104-rgb/Steal-an-Egg/refs/heads/main/Vincitore.luau"},
+    {name = "LEON HUB", url = "https://raw.githubusercontent.com/n01771542-cmd/faluahub/main/main.lua"},
+    {name = "NIGHT HUB", url = "https://raw.githubusercontent.com/WhiteX1208/Scripts/refs/heads/main/StealEggOnly.luau"},
+    {name = "CHILI HUB", url = "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"},
+    {name = "ALL SCRIPT V1", url = "https://raw.githubusercontent.com/kadit9999/stealanegg/refs/heads/main/stopped.lua"},
+    {name = "SENA UPGRATE SISTEM", url = "https://raw.githubusercontent.com/senarblx/sena/refs/heads/main/senav3go"},
+    {name = "WZEUS HUB", url = "https://raw.githubusercontent.com/Wzeus-NTH/Wzeusno1/main/Wzeus/nthzz"},
+    {name = "Blyx Hub", url = "https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/Fn-stealanegg.lua"}
+}
 
---// Window
-local window = Instance.new("Frame")
-window.Size = UDim2.fromOffset(360, 220)
-window.Position = UDim2.fromScale(0.5, 0.5)
-window.AnchorPoint = Vector2.new(0.5, 0.5)
-window.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-window.BorderSizePixel = 0
-window.Parent = gui
+-- ScreenGui Principal
+local LipzyGui = Instance.new("ScreenGui")
+LipzyGui.Name = "LipzyNewHubUI"
+LipzyGui.ResetOnSpawn = false
+LipzyGui.Parent = game:GetService("CoreGui")
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 18)
-corner.Parent = window
+--------------------------------------------------------------------------------
+-- FUNGSI HELPER (Drag, Rainbow, Animations)
+--------------------------------------------------------------------------------
 
-local stroke = Instance.new("UIStroke")
-stroke.Thickness = 2
-stroke.Parent = window
+local function makeDraggable(gui)
+    local dragging, dragInput, dragStart, startPos
+    gui.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = gui.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    gui.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
 
---// Rainbow animation
-local hue = 0
+-- Rainbow Background Moving Loop
+local function applyRainbowBg(frame)
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+        ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 255, 0)),
+        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(0, 255, 0)),
+        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 255, 255)),
+        ColorSequenceKeypoint.new(0.8, Color3.fromRGB(0, 0, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 255))
+    }
+    gradient.Parent = frame
 
-task.spawn(function()
-	while gui.Parent do
-		hue = (hue + 0.005) % 1
-		local color = Color3.fromHSV(hue, 1, 1)
+    task.spawn(function()
+        local rot = 0
+        while frame and frame.Parent do
+            rot = (rot + 2) % 360
+            gradient.Rotation = rot
+            task.wait(0.03)
+        end
+    end)
+end
 
-		stroke.Color = color
+-- Rainbow Stroke/Text Loop
+local function applyRainbowStroke(uiStroke)
+    task.spawn(function()
+        local hue = 0
+        while uiStroke and uiStroke.Parent do
+            hue = (hue + 0.01) % 1
+            uiStroke.Color = Color3.fromHSV(hue, 1, 1)
+            task.wait(0.03)
+        end
+    end)
+end
 
-		task.wait(0.03)
-	end
+-- Animasi Kedap Kedip Text
+local function applyBlink(textLabel)
+    task.spawn(function()
+        while textLabel and textLabel.Parent do
+            textLabel.TextTransparency = 0
+            task.wait(0.5)
+            textLabel.TextTransparency = 0.8
+            task.wait(0.5)
+        end
+    end)
+end
+
+-- Animasi Typing Text
+local function typeText(label, fullText, delayPerChar)
+    label.Text = ""
+    for i = 1, #fullText do
+        label.Text = string.sub(fullText, 1, i)
+        task.wait(delayPerChar or 0.08)
+    end
+end
+
+--------------------------------------------------------------------------------
+-- JENDELA 1: LOADING FRAME (Foto 1)
+--------------------------------------------------------------------------------
+
+local LoadingFrame = Instance.new("Frame")
+LoadingFrame.Name = "LoadingFrame"
+LoadingFrame.Size = UDim2.new(0, 360, 0, 360)
+LoadingFrame.Position = UDim2.new(0.5, -180, 0.5, -180)
+LoadingFrame.BorderSizePixel = 0
+LoadingFrame.Parent = LipzyGui
+applyRainbowBg(LoadingFrame)
+makeDraggable(LoadingFrame)
+
+-- Banner Foto 1 (ID: 126570907599539)
+local Banner1 = Instance.new("ImageLabel")
+Banner1.Size = UDim2.new(0, 110, 0, 110)
+Banner1.Position = UDim2.new(0, 15, 0, 15)
+Banner1.Image = "rbxassetid://126570907599539"
+Banner1.BackgroundTransparency = 1
+Banner1.Parent = LoadingFrame
+
+local Banner1Corner = Instance.new("UICorner")
+Banner1Corner.CornerRadius = UDim.new(0, 15)
+Banner1Corner.Parent = Banner1
+
+local Banner1Stroke = Instance.new("UIStroke")
+Banner1Stroke.Thickness = 4
+Banner1Stroke.Parent = Banner1
+applyRainbowStroke(Banner1Stroke)
+
+-- Text LIPZY NEW HUB V3.1
+local Title1 = Instance.new("TextLabel")
+Title1.Size = UDim2.new(0, 210, 0, 80)
+Title1.Position = UDim2.new(0, 135, 0, 30)
+Title1.BackgroundTransparency = 1
+Title1.Font = Enum.Font.FredokaOne
+Title1.Text = "LIPZY NEW HUB\nV 3.1"
+Title1.TextSize = 22
+Title1.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title1.TextWrapped = true
+Title1.Parent = LoadingFrame
+
+local Title1Stroke = Instance.new("UIStroke")
+Title1Stroke.Thickness = 2.5
+Title1Stroke.Parent = Title1
+applyRainbowStroke(Title1Stroke)
+
+-- Loading Text & Progress
+local LoadingLabel = Instance.new("TextLabel")
+LoadingLabel.Size = UDim2.new(1, 0, 0, 30)
+LoadingLabel.Position = UDim2.new(0, 0, 0.45, 0)
+LoadingLabel.BackgroundTransparency = 1
+LoadingLabel.Font = Enum.Font.FredokaOne
+LoadingLabel.Text = "LOADING HUB"
+LoadingLabel.TextSize = 20
+LoadingLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+LoadingLabel.Parent = LoadingFrame
+
+local LoadingStroke = Instance.new("UIStroke")
+LoadingStroke.Thickness = 2
+LoadingStroke.Parent = LoadingLabel
+applyRainbowStroke(LoadingStroke)
+
+local BarBg = Instance.new("Frame")
+BarBg.Size = UDim2.new(0.85, 0, 0, 6)
+BarBg.Position = UDim2.new(0.075, 0, 0.54, 0)
+BarBg.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+BarBg.BorderSizePixel = 0
+BarBg.Parent = LoadingFrame
+
+local PercentLabel = Instance.new("TextLabel")
+PercentLabel.Size = UDim2.new(1, 0, 0, 30)
+PercentLabel.Position = UDim2.new(0, 0, 0.57, 0)
+PercentLabel.BackgroundTransparency = 1
+PercentLabel.Font = Enum.Font.FredokaOne
+PercentLabel.Text = "0%"
+PercentLabel.TextSize = 18
+PercentLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+PercentLabel.Parent = LoadingFrame
+
+local PercentStroke = Instance.new("UIStroke")
+PercentStroke.Thickness = 2
+PercentStroke.Parent = PercentLabel
+applyRainbowStroke(PercentStroke)
+
+-- Teks Peringatan Bawah Kiri (Blink)
+local WarnText = Instance.new("TextLabel")
+WarnText.Size = UDim2.new(0.55, 0, 0, 80)
+WarnText.Position = UDim2.new(0, 10, 0.75, 0)
+WarnText.BackgroundTransparency = 1
+WarnText.Font = Enum.Font.FredokaOne
+WarnText.Text = "SCRIPT INI JANGGAN DI PERJUAL BELIKAN KALO KAMU BELI KE TIPU SCRIPT INI FREE"
+WarnText.TextSize = 11
+WarnText.TextColor3 = Color3.fromRGB(255, 255, 255)
+WarnText.TextWrapped = true
+WarnText.TextXAlignment = Enum.TextXAlignment.Left
+WarnText.Parent = LoadingFrame
+applyBlink(WarnText)
+
+--------------------------------------------------------------------------------
+-- JENDELA 2: MAIN HUB FRAME (Foto 2)
+--------------------------------------------------------------------------------
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainHubFrame"
+MainFrame.Size = UDim2.new(0, 380, 0, 480)
+MainFrame.Position = UDim2.new(0.5, -190, 0.5, -240)
+MainFrame.BorderSizePixel = 0
+MainFrame.Visible = false
+MainFrame.Parent = LipzyGui
+applyRainbowBg(MainFrame)
+makeDraggable(MainFrame)
+
+-- Close Button (X)
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 25, 0, 25)
+CloseBtn.Position = UDim2.new(1, -28, 0, 3)
+CloseBtn.BackgroundTransparency = 1
+CloseBtn.Font = Enum.Font.FredokaOne
+CloseBtn.Text = "X"
+CloseBtn.TextSize = 22
+CloseBtn.TextColor3 = Color3.fromRGB(255, 0, 0)
+CloseBtn.Parent = MainFrame
+CloseBtn.MouseButton1Click:Connect(function()
+    LipzyGui:Destroy()
 end)
 
---// LIPZY HUB
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 65)
-title.Position = UDim2.fromOffset(0, 15)
-title.BackgroundTransparency = 1
-title.Text = "LIPZY HUB"
-title.TextScaled = true
-title.Font = Enum.Font.GothamBlack
-title.Parent = window
+-- Panel Kiri (Info Profil & Tab Button)
+local LeftPanel = Instance.new("Frame")
+LeftPanel.Size = UDim2.new(0, 120, 0, 465)
+LeftPanel.Position = UDim2.new(0, 5, 0, 8)
+LeftPanel.BackgroundTransparency = 1
+LeftPanel.Parent = MainFrame
 
---// Rainbow title
+-- Profil Picture ID: 89068831704340
+local ProfilePic = Instance.new("ImageLabel")
+ProfilePic.Size = UDim2.new(0, 80, 0, 80)
+ProfilePic.Position = UDim2.new(0.5, -40, 0, 0)
+ProfilePic.Image = "rbxassetid://89068831704340"
+ProfilePic.BackgroundTransparency = 1
+ProfilePic.Parent = LeftPanel
+
+local ProfileCorner = Instance.new("UICorner")
+ProfileCorner.CornerRadius = UDim.new(1, 0)
+ProfileCorner.Parent = ProfilePic
+
+local ProfileStroke = Instance.new("UIStroke")
+ProfileStroke.Thickness = 2
+ProfileStroke.Color = Color3.fromRGB(0, 0, 0)
+ProfileStroke.Parent = ProfilePic
+
+-- Title "Lipzy Hub" Kiri
+local LipzyTitleLeft = Instance.new("TextLabel")
+LipzyTitleLeft.Size = UDim2.new(1, 0, 0, 25)
+LipzyTitleLeft.Position = UDim2.new(0, 0, 0, 82)
+LipzyTitleLeft.BackgroundTransparency = 1
+LipzyTitleLeft.Font = Enum.Font.FredokaOne
+LipzyTitleLeft.Text = "Lipzy Hub"
+LipzyTitleLeft.TextSize = 18
+LipzyTitleLeft.TextColor3 = Color3.fromRGB(0, 255, 128)
+LipzyTitleLeft.Parent = LeftPanel
+
+-- Informasi Akun
+local UserInfoLabel = Instance.new("TextLabel")
+UserInfoLabel.Size = UDim2.new(1, 0, 0, 60)
+UserInfoLabel.Position = UDim2.new(0, 0, 0, 108)
+UserInfoLabel.BackgroundTransparency = 1
+UserInfoLabel.Font = Enum.Font.FredokaOne
+UserInfoLabel.TextSize = 10
+UserInfoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+UserInfoLabel.TextXAlignment = Enum.TextXAlignment.Left
+UserInfoLabel.TextYAlignment = Enum.TextYAlignment.Top
+UserInfoLabel.TextWrapped = true
+UserInfoLabel.Parent = LeftPanel
+
+-- Dynamic User Data Calculation
+local accountAgeDays = LocalPlayer.AccountAge
+UserInfoLabel.Text = "USERNAME: " .. LocalPlayer.Name .. "\nUKURAN AKUN: " .. tostring(accountAgeDays) .. "D\n+0Ms\nSteal-An-Egg"
+
+-- Ping Loop Update
 task.spawn(function()
-	local h = 0
-
-	while title.Parent do
-		h = (h + 0.01) % 1
-		title.TextColor3 = Color3.fromHSV(h, 1, 1)
-		task.wait(0.03)
-	end
+    while MainFrame and MainFrame.Parent do
+        local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+        UserInfoLabel.Text = "USERNAME: " .. LocalPlayer.Name .. "\nUKURAN AKUN: " .. tostring(accountAgeDays) .. "D\n+" .. tostring(ping) .. "Ms\nSteal-An-Egg"
+        task.wait(1)
+    end
 end)
 
---// UPDATE
-local update = Instance.new("TextLabel")
-update.Size = UDim2.new(1, -40, 0, 70)
-update.Position = UDim2.fromOffset(20, 90)
-update.BackgroundTransparency = 1
-update.Text = "⚙️ UPDATE ⚙️"
-update.TextScaled = true
-update.Font = Enum.Font.GothamBold
-update.Parent = window
+-- Tab SCRIPT Button
+local ScriptTabBtn = Instance.new("TextButton")
+ScriptTabBtn.Size = UDim2.new(0.95, 0, 0, 32)
+ScriptTabBtn.Position = UDim2.new(0.025, 0, 0, 175)
+ScriptTabBtn.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+ScriptTabBtn.Font = Enum.Font.FredokaOne
+ScriptTabBtn.Text = "SCRIPT"
+ScriptTabBtn.TextSize = 16
+ScriptTabBtn.TextColor3 = Color3.fromRGB(0, 150, 0)
+ScriptTabBtn.Parent = LeftPanel
 
---// Rainbow + blinking animation
+local TabCorner = Instance.new("UICorner")
+TabCorner.CornerRadius = UDim.new(0, 8)
+TabCorner.Parent = ScriptTabBtn
+
+-- Tab WARNING Button
+local WarnTabBtn = Instance.new("TextButton")
+WarnTabBtn.Size = UDim2.new(0.95, 0, 0, 32)
+WarnTabBtn.Position = UDim2.new(0.025, 0, 0, 212)
+WarnTabBtn.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+WarnTabBtn.Font = Enum.Font.FredokaOne
+WarnTabBtn.Text = "WARNING"
+WarnTabBtn.TextSize = 16
+WarnTabBtn.TextColor3 = Color3.fromRGB(0, 150, 0)
+WarnTabBtn.Parent = LeftPanel
+
+local WarnTabCorner = Instance.new("UICorner")
+WarnTabCorner.CornerRadius = UDim.new(0, 8)
+WarnTabCorner.Parent = WarnTabBtn
+
+--------------------------------------------------------------------------------
+-- PANEL KANAN: LIST SCRIPT & BANNER BAWAH
+--------------------------------------------------------------------------------
+
+local RightPanel = Instance.new("Frame")
+RightPanel.Size = UDim2.new(0, 245, 0, 465)
+RightPanel.Position = UDim2.new(0, 130, 0, 8)
+RightPanel.BackgroundTransparency = 1
+RightPanel.Parent = MainFrame
+
+-- Title "ALL SCRIPT-STEAL-AN-EGG"
+local MainTitle = Instance.new("TextLabel")
+MainTitle.Size = UDim2.new(1, 0, 0, 25)
+MainTitle.Position = UDim2.new(0, 0, 0, 0)
+MainTitle.BackgroundTransparency = 1
+MainTitle.Font = Enum.Font.FredokaOne
+MainTitle.Text = "ALL SCRIPT-STEAL-AN-EGG"
+MainTitle.TextSize = 15
+MainTitle.TextColor3 = Color3.fromRGB(0, 100, 255)
+MainTitle.Parent = RightPanel
+
+-- Scrolling Frame untuk Daftar Script
+local ScriptScroll = Instance.new("ScrollingFrame")
+ScriptScroll.Size = UDim2.new(1, 0, 0, 275)
+ScriptScroll.Position = UDim2.new(0, 0, 0, 28)
+ScriptScroll.BackgroundTransparency = 1
+ScriptScroll.CanvasSize = UDim2.new(0, 0, 0, #scriptList * 26)
+ScriptScroll.ScrollBarThickness = 4
+ScriptScroll.Parent = RightPanel
+
+local UIList = Instance.new("UIListLayout")
+UIList.Parent = ScriptScroll
+UIList.SortOrder = Enum.SortOrder.LayoutOrder
+UIList.Padding = UDim.new(0, 3)
+
+-- Generator Tombol Script Hub
+for i, item in ipairs(scriptList) do
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(0.96, 0, 0, 23)
+    Btn.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
+    Btn.Font = Enum.Font.FredokaOne
+    Btn.Text = item.name
+    Btn.TextSize = 12
+    Btn.TextColor3 = Color3.fromRGB(0, 120, 0)
+    Btn.Parent = ScriptScroll
+
+    local BtnCorner = Instance.new("UICorner")
+    BtnCorner.CornerRadius = UDim.new(0, 10)
+    BtnCorner.Parent = Btn
+
+    local BtnStroke = Instance.new("UIStroke")
+    BtnStroke.Thickness = 1
+    BtnStroke.Color = Color3.fromRGB(180, 180, 180)
+    BtnStroke.Parent = Btn
+
+    -- Klik Salah Satu: Menutup Lipzy Hub & Pindah Eksekusi Script Lain
+    Btn.MouseButton1Click:Connect(function()
+        LipzyGui:Destroy()
+        loadstring(game:HttpGet(item.url))()
+    end)
+end
+
+-- Banner Bawah (ID: 136846106138444)
+local Banner2 = Instance.new("ImageLabel")
+Banner2.Size = UDim2.new(1, -5, 0, 85)
+Banner2.Position = UDim2.new(0, 0, 0, 308)
+Banner2.Image = "rbxassetid://136846106138444"
+Banner2.BackgroundTransparency = 1
+Banner2.Parent = RightPanel
+
+local Banner2Corner = Instance.new("UICorner")
+Banner2Corner.CornerRadius = UDim.new(0, 8)
+Banner2Corner.Parent = Banner2
+
+-- Text LIPZY HUB V.3.1 (Dengan Animasi Mengetik)
+local VersionTitle = Instance.new("TextLabel")
+VersionTitle.Size = UDim2.new(1, 0, 0, 25)
+VersionTitle.Position = UDim2.new(0, 0, 0, 395)
+VersionTitle.BackgroundTransparency = 1
+VersionTitle.Font = Enum.Font.FredokaOne
+VersionTitle.TextSize = 18
+VersionTitle.TextColor3 = Color3.fromRGB(0, 255, 128)
+VersionTitle.Parent = RightPanel
+
+-- Text @lifzx32 (Dengan Animasi Kedap Kedip)
+local DevLabel = Instance.new("TextLabel")
+DevLabel.Size = UDim2.new(1, 0, 0, 20)
+DevLabel.Position = UDim2.new(0, 0, 0, 420)
+DevLabel.BackgroundTransparency = 1
+DevLabel.Font = Enum.Font.FredokaOne
+DevLabel.Text = "@lifzx32"
+DevLabel.TextSize = 15
+DevLabel.TextColor3 = Color3.fromRGB(0, 150, 0)
+DevLabel.Parent = RightPanel
+applyBlink(DevLabel)
+
+--------------------------------------------------------------------------------
+-- RUNNING LOADING SYSTEM (Delay 1 Menit = 60 Detik)
+--------------------------------------------------------------------------------
+
 task.spawn(function()
-	local h = 0
+    local totalDelay = 60
+    local steps = 100
+    local stepDelay = totalDelay / steps
 
-	while update.Parent do
-		h = (h + 0.015) % 1
-		update.TextColor3 = Color3.fromHSV(h, 1, 1)
+    for i = 0, steps do
+        PercentLabel.Text = i .. "%"
+        task.wait(stepDelay)
+    end
 
-		update.TextTransparency = 0
-		task.wait(0.35)
+    -- Selesai Loading -> Beralih ke Jendela 2
+    LoadingFrame.Visible = false
+    MainFrame.Visible = true
 
-		update.TextTransparency = 0.65
-		task.wait(0.15)
-
-		update.TextTransparency = 0
-		task.wait(0.35)
-	end
+    -- Jalankan animasi typing setelah jendela 2 terbuka
+    typeText(VersionTitle, "LIPZY HUB V.3.1", 0.08)
 end)
-
---// Small text
-local info = Instance.new("TextLabel")
-info.Size = UDim2.new(1, -40, 0, 30)
-info.Position = UDim2.fromOffset(20, 165)
-info.BackgroundTransparency = 1
-info.Text = "LIPZY HUB • UPDATE"
-info.TextColor3 = Color3.fromRGB(220, 220, 220)
-info.TextScaled = true
-info.Font = Enum.Font.Gotham
-info.Parent = window
