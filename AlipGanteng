@@ -3,7 +3,18 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Stats = game:GetService("Stats")
+local SoundService = game:GetService("SoundService")
+
 local LocalPlayer = Players.LocalPlayer
+
+-- System Audio Background
+local BackgroundSound = Instance.new("Sound")
+BackgroundSound.Name = "LipzyHubAudio"
+BackgroundSound.SoundId = "rbxassetid://105372329671874"
+BackgroundSound.Volume = 0.5
+BackgroundSound.Looped = true
+BackgroundSound.Parent = SoundService
+BackgroundSound:Play()
 
 -- Daftar Script Hub
 local scriptList = {
@@ -34,17 +45,24 @@ LipzyGui.Name = "LipzyNewHubUI"
 LipzyGui.ResetOnSpawn = false
 LipzyGui.Parent = game:GetService("CoreGui")
 
---------------------------------------------------------------------------------
--- FUNGSI HELPER (Drag, Rainbow, Animations)
---------------------------------------------------------------------------------
+-- Hentikan audio jika LipzyGui dihancurkan
+LipzyGui.Destroying:Connect(function()
+    if BackgroundSound then
+        BackgroundSound:Stop()
+        BackgroundSound:Destroy()
+    end
+end)
 
+-- FUNGSI HELPER (Drag, Rainbow, Animations)
 local function makeDraggable(gui)
     local dragging, dragInput, dragStart, startPos
+
     gui.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
             startPos = gui.Position
+
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
                     dragging = false
@@ -52,11 +70,13 @@ local function makeDraggable(gui)
             end)
         end
     end)
+
     gui.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             dragInput = input
         end
     end)
+
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             local delta = input.Position - dragStart
@@ -77,15 +97,15 @@ local function applyRainbowBg(frame)
         ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 255))
     }
     gradient.Parent = frame
-
-    task.spawn(function()
-        local rot = 0
-        while frame and frame.Parent do
-            rot = (rot + 2) % 360
-            gradient.Rotation = rot
-            task.wait(0.03)
-        end
-    end)
+    
+    task.spawn(function()  
+        local rot = 0  
+        while frame and frame.Parent do  
+            rot = (rot + 2) % 360  
+            gradient.Rotation = rot  
+            task.wait(0.03)  
+        end  
+    end)  
 end
 
 -- Rainbow Stroke/Text Loop
@@ -121,16 +141,14 @@ local function typeText(label, fullText, delayPerChar)
     end
 end
 
---------------------------------------------------------------------------------
 -- JENDELA 1: LOADING FRAME (Foto 1)
---------------------------------------------------------------------------------
-
 local LoadingFrame = Instance.new("Frame")
 LoadingFrame.Name = "LoadingFrame"
 LoadingFrame.Size = UDim2.new(0, 360, 0, 360)
 LoadingFrame.Position = UDim2.new(0.5, -180, 0.5, -180)
 LoadingFrame.BorderSizePixel = 0
 LoadingFrame.Parent = LipzyGui
+
 applyRainbowBg(LoadingFrame)
 makeDraggable(LoadingFrame)
 
@@ -220,10 +238,7 @@ WarnText.TextXAlignment = Enum.TextXAlignment.Left
 WarnText.Parent = LoadingFrame
 applyBlink(WarnText)
 
---------------------------------------------------------------------------------
 -- JENDELA 2: MAIN HUB FRAME (Foto 2)
---------------------------------------------------------------------------------
-
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainHubFrame"
 MainFrame.Size = UDim2.new(0, 380, 0, 480)
@@ -231,6 +246,7 @@ MainFrame.Position = UDim2.new(0.5, -190, 0.5, -240)
 MainFrame.BorderSizePixel = 0
 MainFrame.Visible = false
 MainFrame.Parent = LipzyGui
+
 applyRainbowBg(MainFrame)
 makeDraggable(MainFrame)
 
@@ -244,6 +260,7 @@ CloseBtn.Text = "X"
 CloseBtn.TextSize = 22
 CloseBtn.TextColor3 = Color3.fromRGB(255, 0, 0)
 CloseBtn.Parent = MainFrame
+
 CloseBtn.MouseButton1Click:Connect(function()
     LipzyGui:Destroy()
 end)
@@ -339,10 +356,7 @@ local WarnTabCorner = Instance.new("UICorner")
 WarnTabCorner.CornerRadius = UDim.new(0, 8)
 WarnTabCorner.Parent = WarnTabBtn
 
---------------------------------------------------------------------------------
 -- PANEL KANAN: LIST SCRIPT & BANNER BAWAH
---------------------------------------------------------------------------------
-
 local RightPanel = Instance.new("Frame")
 RightPanel.Size = UDim2.new(0, 245, 0, 465)
 RightPanel.Position = UDim2.new(0, 130, 0, 8)
@@ -385,20 +399,20 @@ for i, item in ipairs(scriptList) do
     Btn.TextColor3 = Color3.fromRGB(0, 120, 0)
     Btn.Parent = ScriptScroll
 
-    local BtnCorner = Instance.new("UICorner")
-    BtnCorner.CornerRadius = UDim.new(0, 10)
-    BtnCorner.Parent = Btn
+    local BtnCorner = Instance.new("UICorner")  
+    BtnCorner.CornerRadius = UDim.new(0, 10)  
+    BtnCorner.Parent = Btn  
 
-    local BtnStroke = Instance.new("UIStroke")
-    BtnStroke.Thickness = 1
-    BtnStroke.Color = Color3.fromRGB(180, 180, 180)
-    BtnStroke.Parent = Btn
+    local BtnStroke = Instance.new("UIStroke")  
+    BtnStroke.Thickness = 1  
+    BtnStroke.Color = Color3.fromRGB(180, 180, 180)  
+    BtnStroke.Parent = Btn  
 
-    -- Klik Salah Satu: Menutup Lipzy Hub & Pindah Eksekusi Script Lain
-    Btn.MouseButton1Click:Connect(function()
-        LipzyGui:Destroy()
-        loadstring(game:HttpGet(item.url))()
-    end)
+    -- Klik Salah Satu: Menutup Lipzy Hub & Pindah Eksekusi Script Lain  
+    Btn.MouseButton1Click:Connect(function()  
+        LipzyGui:Destroy()  
+        loadstring(game:HttpGet(item.url))()  
+    end)  
 end
 
 -- Banner Bawah (ID: 136846106138444)
@@ -433,26 +447,24 @@ DevLabel.Text = "@lifzx32"
 DevLabel.TextSize = 15
 DevLabel.TextColor3 = Color3.fromRGB(0, 150, 0)
 DevLabel.Parent = RightPanel
+
 applyBlink(DevLabel)
 
---------------------------------------------------------------------------------
 -- RUNNING LOADING SYSTEM (Delay 1 Menit = 60 Detik)
---------------------------------------------------------------------------------
-
 task.spawn(function()
     local totalDelay = 60
     local steps = 100
     local stepDelay = totalDelay / steps
 
-    for i = 0, steps do
-        PercentLabel.Text = i .. "%"
-        task.wait(stepDelay)
-    end
+    for i = 0, steps do  
+        PercentLabel.Text = i .. "%"  
+        task.wait(stepDelay)  
+    end  
 
-    -- Selesai Loading -> Beralih ke Jendela 2
-    LoadingFrame.Visible = false
-    MainFrame.Visible = true
+    -- Selesai Loading -> Beralih ke Jendela 2  
+    LoadingFrame.Visible = false  
+    MainFrame.Visible = true  
 
-    -- Jalankan animasi typing setelah jendela 2 terbuka
-    typeText(VersionTitle, "LIPZY HUB V.3.1", 0.08)
+    -- Jalankan animasi typing setelah jendela 2 terbuka  
+    typeText(VersionTitle, "LIPZY HUB V.3.1", 0.08)  
 end)
