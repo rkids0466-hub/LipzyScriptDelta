@@ -76,7 +76,6 @@ local HubList = {
     {Name = "Blyx Hub", Script = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/Fn-stealanegg.lua"))()'}
 }
 
--- Forward declaration fungsi pembuatan Menu Utama
 local createMainMenu
 
 -- ========================================================
@@ -93,14 +92,12 @@ local function createKeyWindow()
     KeyFrame.Draggable = true
     KeyFrame.Parent = ScreenGui
 
-    -- Background Banner Utama  
     local BackgroundBanner = Instance.new("ImageLabel")  
     BackgroundBanner.Size = UDim2.new(1, 0, 1, 0)  
     BackgroundBanner.Image = "rbxassetid://93200353719751"  
     BackgroundBanner.ScaleType = Enum.ScaleType.Stretch  
     BackgroundBanner.Parent = KeyFrame  
 
-    -- Banner Atas (Foto 1)  
     local TopBanner = Instance.new("ImageLabel")  
     TopBanner.Size = UDim2.new(0, 580, 0, 130)  
     TopBanner.Position = UDim2.new(0.5, -290, 0.05, 0)  
@@ -118,7 +115,6 @@ local function createKeyWindow()
     TopBannerStroke.Thickness = 3  
     TopBannerStroke.Parent = TopBanner  
 
-    -- Key Input Box  
     local KeyInput = Instance.new("TextBox")  
     KeyInput.Size = UDim2.new(0, 500, 0, 45)  
     KeyInput.Position = UDim2.new(0.5, -250, 0.52, 0)  
@@ -135,7 +131,6 @@ local function createKeyWindow()
     KeyInputCorner.CornerRadius = UDim.new(0, 20)  
     KeyInputCorner.Parent = KeyInput  
 
-    -- Tombol PLAY  
     local PlayBtn = Instance.new("TextButton")  
     PlayBtn.Size = UDim2.new(0, 250, 0, 45)  
     PlayBtn.Position = UDim2.new(0.5, -125, 0.75, 0)  
@@ -150,7 +145,6 @@ local function createKeyWindow()
     PlayBtnCorner.CornerRadius = UDim.new(0, 20)  
     PlayBtnCorner.Parent = PlayBtn  
 
-    -- Logika Klik PLAY  
     PlayBtn.MouseButton1Click:Connect(function()  
         if KeyInput.Text == CorrectKey then  
             saveKey(CorrectKey)  
@@ -181,14 +175,12 @@ createMainMenu = function()
     MainFrame.Draggable = true
     MainFrame.Parent = ScreenGui
 
-    -- Background Banner Utama  
     local BackgroundBanner = Instance.new("ImageLabel")  
     BackgroundBanner.Size = UDim2.new(1, 0, 1, 0)  
     BackgroundBanner.Image = "rbxassetid://93200353719751"  
     BackgroundBanner.ScaleType = Enum.ScaleType.Stretch  
     BackgroundBanner.Parent = MainFrame  
 
-    -- Profile Image Pojok Kiri Atas  
     local ProfileImage = Instance.new("ImageLabel")  
     ProfileImage.Size = UDim2.new(0, 85, 0, 85)  
     ProfileImage.Position = UDim2.new(0, 12, 0, 12)  
@@ -205,7 +197,6 @@ createMainMenu = function()
     ProfileStroke.Thickness = 3  
     ProfileStroke.Parent = ProfileImage  
 
-    -- Label Info Kiri (Username, Account Age, Ping, Model)  
     local InfoLeft = Instance.new("TextLabel")  
     InfoLeft.Size = UDim2.new(0, 230, 0, 85)  
     InfoLeft.Position = UDim2.new(0, 105, 0, 12)  
@@ -216,7 +207,6 @@ createMainMenu = function()
     InfoLeft.TextYAlignment = Enum.TextYAlignment.Top  
     InfoLeft.Parent = MainFrame  
 
-    -- Label Info Kanan (Admin, Owner, Script Hub, Lipzy X Zalz Hub)  
     local InfoRight = Instance.new("TextLabel")  
     InfoRight.Size = UDim2.new(0, 250, 0, 85)  
     InfoRight.Position = UDim2.new(0, 350, 0, 12)  
@@ -227,9 +217,7 @@ createMainMenu = function()
     InfoRight.TextYAlignment = Enum.TextYAlignment.Top  
     InfoRight.Parent = MainFrame  
 
-    -- ========================================================
-    -- FITUR PENGATUR SUARA (VOLUME SLIDER)
-    -- ========================================================
+    -- VOLUME SLIDER
     local VolFrame = Instance.new("Frame")
     VolFrame.Size = UDim2.new(0, 120, 0, 25)
     VolFrame.Position = UDim2.new(1, -132, 0, 12)
@@ -293,12 +281,9 @@ createMainMenu = function()
             VolLabel.Text = "VOL: " .. math.floor(scale * 100) .. "%"
         end
     end)
-    -- ========================================================
 
-    -- Update Info Kanan (Statis)  
     InfoRight.Text = "ADMIN:LIPZY\nOWNER:ZALZ\nSCRIPT HUB\nLIPZY X ZALZ HUB"  
 
-    -- Update Info Kiri (Dinamis: Ping & Umur Akun)  
     task.spawn(function()  
         while MainFrame and MainFrame.Parent do  
             local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())  
@@ -308,7 +293,6 @@ createMainMenu = function()
         end  
     end)  
 
-    -- Loop Warna Rainbow untuk Text & Border  
     local hue = 0  
     RunService.RenderStepped:Connect(function(delta)  
         hue = (hue + delta * 0.3) % 1  
@@ -318,40 +302,80 @@ createMainMenu = function()
         InfoRight.TextColor3 = rainbowColor  
     end)  
 
-    -- ScrollingFrame untuk Daftar Hub Button  
-    local ScrollFrame = Instance.new("ScrollingFrame")  
-    ScrollFrame.Size = UDim2.new(0, 620, 0, 190)  
-    ScrollFrame.Position = UDim2.new(0.5, -310, 0, 105)  
-    ScrollFrame.BackgroundTransparency = 1  
-    ScrollFrame.BorderSizePixel = 0  
-    ScrollFrame.ScrollBarThickness = 6  
-    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, #HubList * 42)  
-    ScrollFrame.Parent = MainFrame  
+    -- SIDEBAR (SCRIPT & PREDIKSI)
+    local NavFrame = Instance.new("Frame")
+    NavFrame.Size = UDim2.new(0, 110, 0, 200)
+    NavFrame.Position = UDim2.new(0, 12, 0, 110)
+    NavFrame.BackgroundTransparency = 1
+    NavFrame.Parent = MainFrame
+
+    local ScriptTabBtn = Instance.new("TextButton")
+    ScriptTabBtn.Size = UDim2.new(1, 0, 0, 38)
+    ScriptTabBtn.Position = UDim2.new(0, 0, 0, 0)
+    ScriptTabBtn.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    ScriptTabBtn.Text = "SCRIPT"
+    ScriptTabBtn.TextColor3 = Color3.fromRGB(130, 0, 255)
+    ScriptTabBtn.Font = Enum.Font.FredokaOne
+    ScriptTabBtn.TextSize = 16
+    ScriptTabBtn.Parent = NavFrame
+
+    local ScriptTabCorner = Instance.new("UICorner")
+    ScriptTabCorner.CornerRadius = UDim.new(0, 10)
+    ScriptTabCorner.Parent = ScriptTabBtn
+
+    local PrediksiTabBtn = Instance.new("TextButton")
+    PrediksiTabBtn.Size = UDim2.new(1, 0, 0, 38)
+    PrediksiTabBtn.Position = UDim2.new(0, 0, 0, 48)
+    PrediksiTabBtn.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    PrediksiTabBtn.Text = "PREDIKSI"
+    PrediksiTabBtn.TextColor3 = Color3.fromRGB(130, 0, 255)
+    PrediksiTabBtn.Font = Enum.Font.FredokaOne
+    PrediksiTabBtn.TextSize = 16
+    PrediksiTabBtn.Parent = NavFrame
+
+    local PrediksiTabCorner = Instance.new("UICorner")
+    PrediksiTabCorner.CornerRadius = UDim.new(0, 10)
+    PrediksiTabCorner.Parent = PrediksiTabBtn
+
+    local Divider = Instance.new("Frame")
+    Divider.Size = UDim2.new(0, 3, 0, 210)
+    Divider.Position = UDim2.new(0, 130, 0, 105)
+    Divider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Divider.BorderSizePixel = 0
+    Divider.Parent = MainFrame
+
+    -- KONTEN SCRIPT LIST
+    local ScriptContent = Instance.new("ScrollingFrame")  
+    ScriptContent.Size = UDim2.new(0, 510, 0, 190)  
+    ScriptContent.Position = UDim2.new(0, 145, 0, 105)  
+    ScriptContent.BackgroundTransparency = 1  
+    ScriptContent.BorderSizePixel = 0  
+    ScriptContent.ScrollBarThickness = 6  
+    ScriptContent.CanvasSize = UDim2.new(0, 0, 0, #HubList * 42)  
+    ScriptContent.Parent = MainFrame  
 
     local UIListLayout = Instance.new("UIListLayout")  
     UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center  
     UIListLayout.Padding = UDim.new(0, 8)  
     UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder  
-    UIListLayout.Parent = ScrollFrame  
+    UIListLayout.Parent = ScriptContent  
 
-    -- Generasi Tombol Hub  
     for i, hubData in ipairs(HubList) do  
         local HubBtn = Instance.new("TextButton")  
         HubBtn.Name = hubData.Name  
-        HubBtn.Size = UDim2.new(0, 580, 0, 34)  
+        HubBtn.Size = UDim2.new(0, 480, 0, 34)  
         HubBtn.BackgroundColor3 = Color3.fromRGB(240, 240, 240)  
         HubBtn.Text = hubData.Name  
         HubBtn.TextColor3 = Color3.fromRGB(130, 0, 255)  
         HubBtn.Font = Enum.Font.FredokaOne  
         HubBtn.TextSize = 20  
         HubBtn.LayoutOrder = i  
-        HubBtn.Parent = ScrollFrame  
+        HubBtn.Parent = ScriptContent  
 
         local BtnCorner = Instance.new("UICorner")  
         BtnCorner.CornerRadius = UDim.new(0, 15)  
         BtnCorner.Parent = HubBtn  
 
-        -- Klik Tombol: Hapus Lipzy Hub dan Jalankan Script Hub  
         HubBtn.MouseButton1Click:Connect(function()  
             BackgroundSound:Stop()
             BackgroundSound:Destroy()
@@ -362,7 +386,86 @@ createMainMenu = function()
         end)  
     end  
 
-    -- Text Animasi Mengetik di Bagian Bawah "LIPZY HUB V 3.4"  
+    -- KONTEN PREDIKSI (FORMAT JAM-MENIT-DETIK)
+    local PrediksiContent = Instance.new("Frame")
+    PrediksiContent.Size = UDim2.new(0, 510, 0, 190)
+    PrediksiContent.Position = UDim2.new(0, 145, 0, 105)
+    PrediksiContent.BackgroundTransparency = 1
+    PrediksiContent.Visible = false
+    PrediksiContent.Parent = MainFrame
+
+    local PredictionItems = {"DIVINE", "ETERNAL", "SECRET"}
+    local TimerLabels = {}
+
+    for i, itemName in ipairs(PredictionItems) do
+        local ItemFrame = Instance.new("Frame")
+        ItemFrame.Size = UDim2.new(0, 460, 0, 50)
+        ItemFrame.Position = UDim2.new(0.5, -230, 0, (i - 1) * 60)
+        ItemFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+        ItemFrame.Parent = PrediksiContent
+
+        local ItemCorner = Instance.new("UICorner")
+        ItemCorner.CornerRadius = UDim.new(0, 15)
+        ItemCorner.Parent = ItemFrame
+
+        local ItemLabel = Instance.new("TextLabel")
+        ItemLabel.Size = UDim2.new(1, 0, 1, 0)
+        ItemLabel.BackgroundTransparency = 1
+        ItemLabel.Font = Enum.Font.FredokaOne
+        ItemLabel.TextSize = 26
+        ItemLabel.TextColor3 = Color3.fromRGB(130, 0, 255)
+        ItemLabel.Text = itemName .. " 00-00-00"
+        ItemLabel.Parent = ItemFrame
+
+        TimerLabels[itemName] = ItemLabel
+    end
+
+    -- GENERASI WAKTU ACAK DALAM DETIK (PER EXECUTE)
+    math.randomseed(tick())
+    local ActiveTimers = {}
+    for _, name in ipairs(PredictionItems) do
+        if math.random(1, 2) == 1 then
+            -- Waktu acak antara 10 detik - 2 jam (7200 detik)
+            ActiveTimers[name] = math.random(10, 7200)
+        else
+            ActiveTimers[name] = 0 -- Berada pada 00-00-00 jika tidak diprediksi
+        end
+    end
+
+    -- SISTEM HITUNG MUNDUR (MENGGUNAKAN TASK.WAIT(1) AGAR SAMA SEPERTI DETIK JAM BIASA)
+    task.spawn(function()
+        while MainFrame and MainFrame.Parent do
+            task.wait(1) -- Berjalan normal 1 detik sekali
+            for name, label in pairs(TimerLabels) do
+                if ActiveTimers[name] and ActiveTimers[name] > 0 then
+                    ActiveTimers[name] = ActiveTimers[name] - 1
+                    local totalSeconds = ActiveTimers[name]
+                    
+                    local hours = math.floor(totalSeconds / 3600)
+                    local minutes = math.floor((totalSeconds % 3600) / 60)
+                    local seconds = totalSeconds % 60
+                    
+                    -- Format: JAM-MENIT-DETIK (00-00-00)
+                    label.Text = string.format("%s %02d-%02d-%02d", name, hours, minutes, seconds)
+                else
+                    label.Text = name .. " 00-00-00"
+                end
+            end
+        end
+    end)
+
+    -- PERPINDAHAN TAB
+    ScriptTabBtn.MouseButton1Click:Connect(function()
+        ScriptContent.Visible = true
+        PrediksiContent.Visible = false
+    end)
+
+    PrediksiTabBtn.MouseButton1Click:Connect(function()
+        ScriptContent.Visible = false
+        PrediksiContent.Visible = true
+    end)
+
+    -- TEXT TYPING
     local TypingLabel = Instance.new("TextLabel")  
     TypingLabel.Size = UDim2.new(0, 400, 0, 30)  
     TypingLabel.Position = UDim2.new(0.5, -200, 0.9, -5)  
