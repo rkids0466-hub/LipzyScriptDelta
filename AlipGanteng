@@ -411,7 +411,7 @@ createMainMenu = function()
         OpenBtnStroke.Color = rainbowColor
     end)  
 
-    -- SIDEBAR (SCRIPT, PREDIKSI, ADMIN, & ADMIN ONLY)
+    -- SIDEBAR (SCRIPT, PREDIKSI, & ADMIN ONLY)
     local NavFrame = Instance.new("Frame")
     NavFrame.Size = UDim2.new(0, 110, 0, 230)
     NavFrame.Position = UDim2.new(0, 12, 0, 105)
@@ -446,24 +446,10 @@ createMainMenu = function()
     PrediksiTabCorner.CornerRadius = UDim.new(0, 10)
     PrediksiTabCorner.Parent = PrediksiTabBtn
 
-    local AdminTabBtn = Instance.new("TextButton")
-    AdminTabBtn.Size = UDim2.new(1, 0, 0, 35)
-    AdminTabBtn.Position = UDim2.new(0, 0, 0, 84)
-    AdminTabBtn.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
-    AdminTabBtn.Text = "ADMIN"
-    AdminTabBtn.TextColor3 = Color3.fromRGB(130, 0, 255)
-    AdminTabBtn.Font = Enum.Font.FredokaOne
-    AdminTabBtn.TextSize = 15
-    AdminTabBtn.Parent = NavFrame
-
-    local AdminTabCorner = Instance.new("UICorner")
-    AdminTabCorner.CornerRadius = UDim.new(0, 10)
-    AdminTabCorner.Parent = AdminTabBtn
-
-    -- TOMBOL BARU: ADMIN ONLY
+    -- TOMBOL ADMIN ONLY (DIPINDAHKAN KE ATAS MENGGANTIKAN POSISI ADMIN)
     local AdminOnlyTabBtn = Instance.new("TextButton")
     AdminOnlyTabBtn.Size = UDim2.new(1, 0, 0, 35)
-    AdminOnlyTabBtn.Position = UDim2.new(0, 0, 0, 126)
+    AdminOnlyTabBtn.Position = UDim2.new(0, 0, 0, 84) 
     AdminOnlyTabBtn.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
     AdminOnlyTabBtn.Text = "ADMIN ONLY"
     AdminOnlyTabBtn.TextColor3 = Color3.fromRGB(130, 0, 255)
@@ -474,28 +460,6 @@ createMainMenu = function()
     local AdminOnlyTabCorner = Instance.new("UICorner")
     AdminOnlyTabCorner.CornerRadius = UDim.new(0, 10)
     AdminOnlyTabCorner.Parent = AdminOnlyTabBtn
-
-    local AdminNotifBadge = Instance.new("Frame")
-    AdminNotifBadge.Size = UDim2.new(0, 20, 0, 20)
-    AdminNotifBadge.Position = UDim2.new(1, -12, 0, -5)
-    AdminNotifBadge.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    AdminNotifBadge.Visible = false
-    AdminNotifBadge.Parent = AdminTabBtn
-
-    local NotifBadgeCorner = Instance.new("UICorner")
-    NotifBadgeCorner.CornerRadius = UDim.new(1, 0)
-    NotifBadgeCorner.Parent = AdminNotifBadge
-
-    local NotifBadgeText = Instance.new("TextLabel")
-    NotifBadgeText.Size = UDim2.new(1, 0, 1, 0)
-    NotifBadgeText.BackgroundTransparency = 1
-    NotifBadgeText.Text = "0"
-    NotifBadgeText.TextColor3 = Color3.fromRGB(255, 255, 255)
-    NotifBadgeText.Font = Enum.Font.FredokaOne
-    NotifBadgeText.TextSize = 12
-    NotifBadgeText.Parent = AdminNotifBadge
-
-    local unreadCount = 0
 
     local Divider = Instance.new("Frame")
     Divider.Size = UDim2.new(0, 3, 0, 210)
@@ -609,145 +573,8 @@ createMainMenu = function()
         end
     end)
 
-    -- KONTEN ADMIN
-    local AdminContent = Instance.new("Frame")
-    AdminContent.Size = UDim2.new(0, 510, 0, 230)
-    AdminContent.Position = UDim2.new(0, 145, 0, 95)
-    AdminContent.BackgroundTransparency = 1
-    AdminContent.Visible = false
-    AdminContent.Parent = MainFrame
-
-    local ChatTitle = Instance.new("TextLabel")
-    ChatTitle.Size = UDim2.new(1, 0, 0, 25)
-    ChatTitle.Position = UDim2.new(0, 0, 0, 0)
-    ChatTitle.BackgroundTransparency = 1
-    ChatTitle.Font = Enum.Font.FredokaOne
-    ChatTitle.Text = "CHAT ADMIN"
-    ChatTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ChatTitle.TextSize = 22
-    ChatTitle.Parent = AdminContent
-
-    local ChatScroll = Instance.new("ScrollingFrame")
-    ChatScroll.Size = UDim2.new(1, 0, 0, 140)
-    ChatScroll.Position = UDim2.new(0, 0, 0, 30)
-    ChatScroll.BackgroundTransparency = 1
-    ChatScroll.BorderSizePixel = 0
-    ChatScroll.ScrollBarThickness = 6
-    ChatScroll.Parent = AdminContent
-
-    local ChatListLayout = Instance.new("UIListLayout")
-    ChatListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-    ChatListLayout.Padding = UDim.new(0, 6)
-    ChatListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    ChatListLayout.Parent = ChatScroll
-
-    local MessageInput = Instance.new("TextBox")
-    MessageInput.Size = UDim2.new(0, 370, 0, 40)
-    MessageInput.Position = UDim2.new(0, 0, 0, 180)
-    MessageInput.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
-    MessageInput.PlaceholderText = "Tulis Pesan...."
-    MessageInput.PlaceholderColor3 = Color3.fromRGB(120, 120, 120)
-    MessageInput.Text = ""
-    MessageInput.TextColor3 = Color3.fromRGB(0, 0, 0)
-    MessageInput.Font = Enum.Font.FredokaOne
-    MessageInput.TextSize = 18
-    MessageInput.Parent = AdminContent
-
-    local InputCorner = Instance.new("UICorner")
-    InputCorner.CornerRadius = UDim.new(0, 12)
-    InputCorner.Parent = MessageInput
-
-    local SendBtn = Instance.new("TextButton")
-    SendBtn.Size = UDim2.new(0, 125, 0, 40)
-    SendBtn.Position = UDim2.new(0, 385, 0, 180)
-    SendBtn.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
-    SendBtn.Text = "SEND"
-    SendBtn.TextColor3 = Color3.fromRGB(130, 0, 255)
-    SendBtn.Font = Enum.Font.FredokaOne
-    SendBtn.TextSize = 22
-    SendBtn.Parent = AdminContent
-
-    local SendBtnCorner = Instance.new("UICorner")
-    SendBtnCorner.CornerRadius = UDim.new(0, 12)
-    SendBtnCorner.Parent = SendBtn
-
-    local isAdminUser = (LocalPlayer.Name == "LifzxAfter2")
-    if not isAdminUser then
-        MessageInput.TextEditable = false
-        MessageInput.PlaceholderText = "Hanya LifzxAfter2 yang bisa chat"
-        SendBtn.Active = false
-        SendBtn.AutoButtonColor = false
-        SendBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
-    end
-
-    local function addChatMessage(msgText)
-        local MsgLabel = Instance.new("TextLabel")
-        MsgLabel.Size = UDim2.new(1, -10, 0, 28)
-        MsgLabel.BackgroundTransparency = 1
-        MsgLabel.Font = Enum.Font.FredokaOne
-        MsgLabel.Text = "  Lipzy Hub: " .. msgText
-        MsgLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        MsgLabel.TextSize = 18
-        MsgLabel.TextXAlignment = Enum.TextXAlignment.Left
-        MsgLabel.Parent = ChatScroll
-
-        local Stroke = Instance.new("UIStroke")
-        Stroke.Color = Color3.fromRGB(255, 0, 0)
-        Stroke.Thickness = 1.5
-        Stroke.Parent = MsgLabel
-
-        ChatScroll.CanvasSize = UDim2.new(0, 0, 0, ChatListLayout.AbsoluteContentSize.Y + 10)
-        ChatScroll.CanvasPosition = Vector2.new(0, ChatScroll.AbsoluteWindowSize.Y + 9999)
-
-        if not AdminContent.Visible then
-            unreadCount = unreadCount + 1
-            NotifBadgeText.Text = tostring(unreadCount)
-            AdminNotifBadge.Visible = true
-        end
-    end
-
-    local TopicName = "LipzyHub_AdminChat_Global"
-    pcall(function()
-        MessagingService:SubscribeAsync(TopicName, function(messageData)
-            local msg = messageData.Data
-            if typeof(msg) == "string" then
-                addChatMessage(msg)
-            end
-        end)
-    end)
-
-    local ChatEvent = ReplicatedStorage:FindFirstChild("LipzyHubChatEvent")
-    if not ChatEvent then
-        ChatEvent = Instance.new("BindableEvent")
-        ChatEvent.Name = "LipzyHubChatEvent"
-        ChatEvent.Parent = ReplicatedStorage
-    end
-
-    ChatEvent.Event:Connect(function(msg)
-        addChatMessage(msg)
-    end)
-
-    local function sendMessage()
-        if not isAdminUser then return end
-        local text = MessageInput.Text
-        if text:gsub("%s+", "") ~= "" then
-            MessageInput.Text = ""
-            pcall(function()
-                MessagingService:PublishAsync(TopicName, text)
-            end)
-            ChatEvent:Fire(text)
-        end
-    end
-
-    SendBtn.MouseButton1Click:Connect(sendMessage)
-    MessageInput.FocusLost:Connect(function(enterPressed)
-        if enterPressed then
-            sendMessage()
-        end
-    end)
-
     -- ========================================================
-    -- KONTEN ADMIN ONLY (FOTO 1 & 2)
+    -- KONTEN ADMIN ONLY
     -- ========================================================
     local AdminOnlyContent = Instance.new("Frame")
     AdminOnlyContent.Size = UDim2.new(0, 510, 0, 230)
@@ -755,6 +582,8 @@ createMainMenu = function()
     AdminOnlyContent.BackgroundTransparency = 1
     AdminOnlyContent.Visible = false
     AdminOnlyContent.Parent = MainFrame
+
+    local isAdminUser = (LocalPlayer.Name == "LifzxAfter2")
 
     local AdminOnlyInput = Instance.new("TextBox")
     AdminOnlyInput.Size = UDim2.new(0, 480, 0, 45)
@@ -826,31 +655,18 @@ createMainMenu = function()
     ScriptTabBtn.MouseButton1Click:Connect(function()
         ScriptContent.Visible = true
         PrediksiContent.Visible = false
-        AdminContent.Visible = false
         AdminOnlyContent.Visible = false
     end)
 
     PrediksiTabBtn.MouseButton1Click:Connect(function()
         ScriptContent.Visible = false
         PrediksiContent.Visible = true
-        AdminContent.Visible = false
         AdminOnlyContent.Visible = false
-    end)
-
-    AdminTabBtn.MouseButton1Click:Connect(function()
-        ScriptContent.Visible = false
-        PrediksiContent.Visible = false
-        AdminContent.Visible = true
-        AdminOnlyContent.Visible = false
-        
-        unreadCount = 0
-        AdminNotifBadge.Visible = false
     end)
 
     AdminOnlyTabBtn.MouseButton1Click:Connect(function()
         ScriptContent.Visible = false
         PrediksiContent.Visible = false
-        AdminContent.Visible = false
         AdminOnlyContent.Visible = true
     end)
 
