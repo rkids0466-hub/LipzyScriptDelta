@@ -36,6 +36,64 @@ ScreenGui.Name = "LipzyHubGui"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
+-- Remote/Bindable Event Broadcast Global
+local BroadcastEvent = ReplicatedStorage:FindFirstChild("LipzyHubBroadcastEvent")
+if not BroadcastEvent then
+    BroadcastEvent = Instance.new("BindableEvent")
+    BroadcastEvent.Name = "LipzyHubBroadcastEvent"
+    BroadcastEvent.Parent = ReplicatedStorage
+end
+
+-- Fungsi Tampilkan Message di Layar (500x50, Atas-Tengah)
+local function showScreenBroadcast(text)
+    local BroadFrame = Instance.new("Frame")
+    BroadFrame.Name = "BroadcastFrame"
+    BroadFrame.Size = UDim2.new(0, 500, 0, 50)
+    BroadFrame.Position = UDim2.new(0.5, -250, 0.08, 0)
+    BroadFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    BroadFrame.BackgroundTransparency = 0.5
+    BroadFrame.BorderSizePixel = 0
+    BroadFrame.Parent = ScreenGui
+
+    local BroadCorner = Instance.new("UICorner")
+    BroadCorner.CornerRadius = UDim.new(0, 10)
+    BroadCorner.Parent = BroadFrame
+
+    local BroadText = Instance.new("TextLabel")
+    BroadText.Size = UDim2.new(1, 0, 1, 0)
+    BroadText.BackgroundTransparency = 1
+    BroadText.Font = Enum.Font.FredokaOne
+    BroadText.TextSize = 22
+    BroadText.RichText = true
+    BroadText.Text = '<font color="rgb(0, 85, 255)">👑LifzxAfter2👑</font> <font color="rgb(255, 255, 0)">Message</font> <font color="rgb(255, 255, 255)">' .. text .. '</font>'
+    BroadText.Parent = BroadFrame
+
+    local TextStroke = Instance.new("UIStroke")
+    TextStroke.Color = Color3.fromRGB(0, 0, 0)
+    TextStroke.Thickness = 2
+    TextStroke.Parent = BroadText
+
+    task.delay(5, function()
+        if BroadFrame and BroadFrame.Parent then
+            BroadFrame:Destroy()
+        end
+    end)
+end
+
+BroadcastEvent.Event:Connect(function(msg)
+    showScreenBroadcast(msg)
+end)
+
+-- MessagingService Sync Global
+local BroadcastTopic = "LipzyHub_Global_Broadcast_Msg"
+pcall(function()
+    MessagingService:SubscribeAsync(BroadcastTopic, function(messageData)
+        if typeof(messageData.Data) == "string" then
+            showScreenBroadcast(messageData.Data)
+        end
+    end)
+end)
+
 -- Fungsi Simpan & Cek Key Permanen
 local function isKeySaved()
     if isfile and readfile then
@@ -353,21 +411,21 @@ createMainMenu = function()
         OpenBtnStroke.Color = rainbowColor
     end)  
 
-    -- SIDEBAR (SCRIPT, PREDIKSI, & ADMIN)
+    -- SIDEBAR (SCRIPT, PREDIKSI, ADMIN, & ADMIN ONLY)
     local NavFrame = Instance.new("Frame")
-    NavFrame.Size = UDim2.new(0, 110, 0, 200)
-    NavFrame.Position = UDim2.new(0, 12, 0, 110)
+    NavFrame.Size = UDim2.new(0, 110, 0, 230)
+    NavFrame.Position = UDim2.new(0, 12, 0, 105)
     NavFrame.BackgroundTransparency = 1
     NavFrame.Parent = MainFrame
 
     local ScriptTabBtn = Instance.new("TextButton")
-    ScriptTabBtn.Size = UDim2.new(1, 0, 0, 38)
+    ScriptTabBtn.Size = UDim2.new(1, 0, 0, 35)
     ScriptTabBtn.Position = UDim2.new(0, 0, 0, 0)
     ScriptTabBtn.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
     ScriptTabBtn.Text = "SCRIPT"
     ScriptTabBtn.TextColor3 = Color3.fromRGB(130, 0, 255)
     ScriptTabBtn.Font = Enum.Font.FredokaOne
-    ScriptTabBtn.TextSize = 16
+    ScriptTabBtn.TextSize = 15
     ScriptTabBtn.Parent = NavFrame
 
     local ScriptTabCorner = Instance.new("UICorner")
@@ -375,13 +433,13 @@ createMainMenu = function()
     ScriptTabCorner.Parent = ScriptTabBtn
 
     local PrediksiTabBtn = Instance.new("TextButton")
-    PrediksiTabBtn.Size = UDim2.new(1, 0, 0, 38)
-    PrediksiTabBtn.Position = UDim2.new(0, 0, 0, 48)
+    PrediksiTabBtn.Size = UDim2.new(1, 0, 0, 35)
+    PrediksiTabBtn.Position = UDim2.new(0, 0, 0, 42)
     PrediksiTabBtn.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
     PrediksiTabBtn.Text = "PREDIKSI"
     PrediksiTabBtn.TextColor3 = Color3.fromRGB(130, 0, 255)
     PrediksiTabBtn.Font = Enum.Font.FredokaOne
-    PrediksiTabBtn.TextSize = 16
+    PrediksiTabBtn.TextSize = 15
     PrediksiTabBtn.Parent = NavFrame
 
     local PrediksiTabCorner = Instance.new("UICorner")
@@ -389,18 +447,33 @@ createMainMenu = function()
     PrediksiTabCorner.Parent = PrediksiTabBtn
 
     local AdminTabBtn = Instance.new("TextButton")
-    AdminTabBtn.Size = UDim2.new(1, 0, 0, 38)
-    AdminTabBtn.Position = UDim2.new(0, 0, 0, 96)
+    AdminTabBtn.Size = UDim2.new(1, 0, 0, 35)
+    AdminTabBtn.Position = UDim2.new(0, 0, 0, 84)
     AdminTabBtn.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
     AdminTabBtn.Text = "ADMIN"
     AdminTabBtn.TextColor3 = Color3.fromRGB(130, 0, 255)
     AdminTabBtn.Font = Enum.Font.FredokaOne
-    AdminTabBtn.TextSize = 16
+    AdminTabBtn.TextSize = 15
     AdminTabBtn.Parent = NavFrame
 
     local AdminTabCorner = Instance.new("UICorner")
     AdminTabCorner.CornerRadius = UDim.new(0, 10)
     AdminTabCorner.Parent = AdminTabBtn
+
+    -- TOMBOL BARU: ADMIN ONLY
+    local AdminOnlyTabBtn = Instance.new("TextButton")
+    AdminOnlyTabBtn.Size = UDim2.new(1, 0, 0, 35)
+    AdminOnlyTabBtn.Position = UDim2.new(0, 0, 0, 126)
+    AdminOnlyTabBtn.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    AdminOnlyTabBtn.Text = "ADMIN ONLY"
+    AdminOnlyTabBtn.TextColor3 = Color3.fromRGB(130, 0, 255)
+    AdminOnlyTabBtn.Font = Enum.Font.FredokaOne
+    AdminOnlyTabBtn.TextSize = 13
+    AdminOnlyTabBtn.Parent = NavFrame
+
+    local AdminOnlyTabCorner = Instance.new("UICorner")
+    AdminOnlyTabCorner.CornerRadius = UDim.new(0, 10)
+    AdminOnlyTabCorner.Parent = AdminOnlyTabBtn
 
     local AdminNotifBadge = Instance.new("Frame")
     AdminNotifBadge.Size = UDim2.new(0, 20, 0, 20)
@@ -463,7 +536,6 @@ createMainMenu = function()
         BtnCorner.CornerRadius = UDim.new(0, 15)  
         BtnCorner.Parent = HubBtn  
 
-        -- MODIFIKASI: GUI TIDAK DIDESTROY SAAT TOMBOL DIKLIK
         HubBtn.MouseButton1Click:Connect(function()  
             task.spawn(function()
                 pcall(function()  
@@ -674,25 +746,112 @@ createMainMenu = function()
         end
     end)
 
+    -- ========================================================
+    -- KONTEN ADMIN ONLY (FOTO 1 & 2)
+    -- ========================================================
+    local AdminOnlyContent = Instance.new("Frame")
+    AdminOnlyContent.Size = UDim2.new(0, 510, 0, 230)
+    AdminOnlyContent.Position = UDim2.new(0, 145, 0, 95)
+    AdminOnlyContent.BackgroundTransparency = 1
+    AdminOnlyContent.Visible = false
+    AdminOnlyContent.Parent = MainFrame
+
+    local AdminOnlyInput = Instance.new("TextBox")
+    AdminOnlyInput.Size = UDim2.new(0, 480, 0, 45)
+    AdminOnlyInput.Position = UDim2.new(0.5, -240, 0, 30)
+    AdminOnlyInput.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    AdminOnlyInput.PlaceholderText = "Tulis....."
+    AdminOnlyInput.PlaceholderColor3 = Color3.fromRGB(120, 120, 120)
+    AdminOnlyInput.Text = ""
+    AdminOnlyInput.TextColor3 = Color3.fromRGB(0, 0, 0)
+    AdminOnlyInput.Font = Enum.Font.FredokaOne
+    AdminOnlyInput.TextSize = 22
+    AdminOnlyInput.Parent = AdminOnlyContent
+
+    local AdminOnlyInputCorner = Instance.new("UICorner")
+    AdminOnlyInputCorner.CornerRadius = UDim.new(0, 20)
+    AdminOnlyInputCorner.Parent = AdminOnlyInput
+
+    local AdminOnlySendBtn = Instance.new("TextButton")
+    AdminOnlySendBtn.Size = UDim2.new(0, 240, 0, 45)
+    AdminOnlySendBtn.Position = UDim2.new(0.5, -120, 0, 100)
+    AdminOnlySendBtn.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    AdminOnlySendBtn.Text = "SEND"
+    AdminOnlySendBtn.TextColor3 = Color3.fromRGB(130, 0, 255)
+    AdminOnlySendBtn.Font = Enum.Font.FredokaOne
+    AdminOnlySendBtn.TextSize = 28
+    AdminOnlySendBtn.Parent = AdminOnlyContent
+
+    local AdminOnlySendBtnCorner = Instance.new("UICorner")
+    AdminOnlySendBtnCorner.CornerRadius = UDim.new(0, 20)
+    AdminOnlySendBtnCorner.Parent = AdminOnlySendBtn
+
+    local NotAdminLabel = Instance.new("TextLabel")
+    NotAdminLabel.Size = UDim2.new(1, 0, 0, 40)
+    NotAdminLabel.Position = UDim2.new(0, 0, 0, 80)
+    NotAdminLabel.BackgroundTransparency = 1
+    NotAdminLabel.Font = Enum.Font.FredokaOne
+    NotAdminLabel.Text = "Sorry, you are not an admin or owner."
+    NotAdminLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+    NotAdminLabel.TextSize = 20
+    NotAdminLabel.Visible = false
+    NotAdminLabel.Parent = AdminOnlyContent
+
+    if not isAdminUser then
+        AdminOnlyInput.Visible = false
+        AdminOnlySendBtn.Visible = false
+        NotAdminLabel.Visible = true
+    end
+
+    local function sendAdminOnlyMessage()
+        if not isAdminUser then return end
+        local txt = AdminOnlyInput.Text
+        if txt:gsub("%s+", "") ~= "" then
+            AdminOnlyInput.Text = ""
+            pcall(function()
+                MessagingService:PublishAsync(BroadcastTopic, txt)
+            end)
+            BroadcastEvent:Fire(txt)
+        end
+    end
+
+    AdminOnlySendBtn.MouseButton1Click:Connect(sendAdminOnlyMessage)
+    AdminOnlyInput.FocusLost:Connect(function(enterPressed)
+        if enterPressed then
+            sendAdminOnlyMessage()
+        end
+    end)
+
+    -- EVENT perpindahan TAB
     ScriptTabBtn.MouseButton1Click:Connect(function()
         ScriptContent.Visible = true
         PrediksiContent.Visible = false
         AdminContent.Visible = false
+        AdminOnlyContent.Visible = false
     end)
 
     PrediksiTabBtn.MouseButton1Click:Connect(function()
         ScriptContent.Visible = false
         PrediksiContent.Visible = true
         AdminContent.Visible = false
+        AdminOnlyContent.Visible = false
     end)
 
     AdminTabBtn.MouseButton1Click:Connect(function()
         ScriptContent.Visible = false
         PrediksiContent.Visible = false
         AdminContent.Visible = true
+        AdminOnlyContent.Visible = false
         
         unreadCount = 0
         AdminNotifBadge.Visible = false
+    end)
+
+    AdminOnlyTabBtn.MouseButton1Click:Connect(function()
+        ScriptContent.Visible = false
+        PrediksiContent.Visible = false
+        AdminContent.Visible = false
+        AdminOnlyContent.Visible = true
     end)
 
     -- TEXT TYPING
