@@ -10,6 +10,8 @@ local SoundService = game:GetService("SoundService")
 local MessagingService = game:GetService("MessagingService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
+local Lighting = game:GetService("Lighting")
+local CollectionService = game:GetService("CollectionService")
 
 local CorrectKey = "LipzyHubXZalHub"
 local KeyFileName = "LipzyHubKey.txt"
@@ -212,13 +214,273 @@ local function createKeyWindow()
             createMainMenu()  
         else  
             KeyInput.Text = ""  
-            KeyInput.PlaceholderText = "🙏🏻INVALID🙏🏻"  
+            KeyInput.PlaceholderText = "🙏🏻INVALID🏻"  
             KeyInput.PlaceholderColor3 = Color3.fromRGB(255, 0, 0)  
             task.wait(2)  
             KeyInput.PlaceholderText = "KEY BRO🔐...."  
             KeyInput.PlaceholderColor3 = Color3.fromRGB(100, 100, 100)  
         end  
     end)  
+end
+
+-- ========================================================
+-- FITUR-FITUR BARU - VARIABEL GLOBAL
+-- ========================================================
+local Fps15Enabled = false
+local KegelapanValue = 0
+local AutoTreadmillEnabled = false
+local EggEspEnabled = false
+local PlayerEspEnabled = false
+local OriginalBrightness = Lighting.Brightness
+local Fps15Connection = nil
+local TreadmillConnection = nil
+local EggEspConnections = {}
+local PlayerEspConnections = {}
+
+-- ========================================================
+-- FUNGSI FPS 15
+-- ========================================================
+local function toggleFps15(enabled)
+    Fps15Enabled = enabled
+    if enabled then
+        if Fps15Connection then
+            Fps15Connection:Disconnect()
+        end
+        Fps15Connection = RunService.Heartbeat:Connect(function()
+            task.wait(1/15)
+        end)
+    else
+        if Fps15Connection then
+            Fps15Connection:Disconnect()
+            Fps15Connection = nil
+        end
+    end
+end
+
+-- ========================================================
+-- FUNGSI KEGELAPAN (BRIGHTNESS)
+-- ========================================================
+local function setKegelapan(value)
+    KegelapanValue = value
+    Lighting.Brightness = OriginalBrightness * (1 - value)
+end
+
+-- ========================================================
+-- FUNGSI AUTO TREADMILL
+-- ========================================================
+local function toggleAutoTreadmill(enabled)
+    AutoTreadmillEnabled = enabled
+    if enabled then
+        if TreadmillConnection then
+            TreadmillConnection:Disconnect()
+        end
+        TreadmillConnection = RunService.Heartbeat:Connect(function()
+            pcall(function()
+                local character = LocalPlayer.Character
+                if character and character:FindFirstChild("HumanoidRootPart") then
+                    local rootPart = character.HumanoidRootPart
+                    local humanoid = character:FindFirstChild("Humanoid")
+                    if humanoid then
+                        for _, v in pairs(workspace:GetDescendants()) do
+                            if v:IsA("BasePart") and (string.lower(v.Name):find("treadmill") or string.lower(v.Name):find("conveyor")) then
+                                if (rootPart.Position - v.Position).Magnitude < 10 then
+                                    local cf = v.CFrame
+                                    local lookVector = cf.LookVector
+                                    humanoid:Move(Vector3.new(lookVector.X, 0, lookVector.Z))
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end)
+    else
+        if TreadmillConnection then
+            TreadmillConnection:Disconnect()
+            TreadmillConnection = nil
+        end
+    end
+end
+
+-- ========================================================
+-- FUNGSI EGG ESP
+-- ========================================================
+local EggColors = {
+    ["DIVINE"] = Color3.fromRGB(255, 215, 0),
+    ["ETERNAL"] = Color3.fromRGB(138, 43, 226),
+    ["SECRET"] = Color3.fromRGB(0, 0, 0),
+    ["COMMON"] = Color3.fromRGB(169, 169, 169),
+    ["RARE"] = Color3.fromRGB(30, 144, 255),
+    ["EPIC"] = Color3.fromRGB(148, 0, 211),
+    ["LEGENDARY"] = Color3.fromRGB(255, 140, 0)
+}
+
+local function createEggESP(egg)
+    if not egg or not egg.Parent then return end
+    
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "EggESP"
+    billboardGui.Adornee = egg
+    billboardGui.Size = UDim2.new(0, 200, 0, 50)
+    billboardGui.StudsOffset = Vector3.new(0, 3, 0)
+    billboardGui.AlwaysOnTop = true
+    billboardGui.Parent = egg
+    
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Font = Enum.Font.FredokaOne
+    textLabel.TextSize = 20
+    textLabel.TextColor3 = EggColors[string.upper(egg.Name)] or Color3.fromRGB(255, 255, 255)
+    textLabel.Text = egg.Name
+    textLabel.TextStrokeTransparency = 0
+    textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    textLabel.Parent = billboardGui
+    
+    table.insert(EggEspConnections, billboardGui)
+end
+
+local function toggleEggEsp(enabled)
+    EggEspEnabled = enabled
+    if enabled then
+        for _, v in pairs(workspace:GetDescendants()) do
+            if string.lower(v.Name):find("egg") then
+                createEggESP(v)
+            end
+        end
+        workspace.DescendantAdded:Connect(function(descendant)
+            if EggEspEnabled and string.lower(descendant.Name):find("egg") then
+                createEggESP(descendant)
+            end
+        end)
+    else
+        for _, esp in pairs(EggEspConnections) do
+            if esp and esp.Parent then
+                esp:Destroy()
+            end
+        end
+        EggEspConnections = {}
+    end
+end
+
+-- ========================================================
+-- FUNGSI PLAYER ESP
+-- ========================================================
+local function createPlayerESP(player)
+    if player == LocalPlayer then return end
+    
+    local character = player.Character
+    if not character then return end
+    
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    -- Rainbow body outline
+    local function addRainbowOutline(part)
+        local boxHandle = Instance.new("BoxHandleAdornment")
+        boxHandle.Name = "PlayerESPBox"
+        boxHandle.Adornee = part
+        boxHandle.Size = part.Size
+        boxHandle.Color3 = Color3.fromHSV(tick() % 5 / 5, 1, 1)
+        boxHandle.Transparency = 0.5
+        boxHandle.AlwaysOnTop = true
+        boxHandle.Parent = part
+        table.insert(PlayerEspConnections, boxHandle)
+    end
+    
+    for _, part in pairs(character:GetChildren()) do
+        if part:IsA("BasePart") then
+            addRainbowOutline(part)
+        end
+    end
+    
+    -- Username Billboard
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "PlayerESPName"
+    billboardGui.Adornee = humanoidRootPart
+    billboardGui.Size = UDim2.new(0, 150, 0, 30)
+    billboardGui.StudsOffset = Vector3.new(0, 3, 0)
+    billboardGui.AlwaysOnTop = true
+    billboardGui.Parent = humanoidRootPart
+    
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Font = Enum.Font.FredokaOne
+    textLabel.TextSize = 18
+    textLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    textLabel.Text = player.Name
+    textLabel.TextStrokeTransparency = 0
+    textLabel.TextStrokeColor3 = Color3.fromHSV(tick() % 5 / 5, 1, 1)
+    textLabel.Parent = billboardGui
+    
+    table.insert(PlayerEspConnections, billboardGui)
+    
+    -- Update rainbow effect
+    local updateConnection
+    updateConnection = RunService.Heartbeat:Connect(function()
+        if not PlayerEspEnabled or not billboardGui.Parent then
+            updateConnection:Disconnect()
+            return
+        end
+        local rainbowColor = Color3.fromHSV(tick() % 5 / 5, 1, 1)
+        textLabel.TextStrokeColor3 = rainbowColor
+        for _, conn in pairs(PlayerEspConnections) do
+            if conn:IsA("BoxHandleAdornment") and conn.Parent and conn.Parent.Parent == character then
+                conn.Color3 = rainbowColor
+            end
+        end
+    end)
+    
+    table.insert(PlayerEspConnections, updateConnection)
+end
+
+local function togglePlayerEsp(enabled)
+    PlayerEspEnabled = enabled
+    if enabled then
+        for _, player in pairs(Players:GetPlayers()) do
+            createPlayerESP(player)
+        end
+        Players.PlayerAdded:Connect(function(player)
+            if PlayerEspEnabled then
+                player.CharacterAdded:Connect(function()
+                    createPlayerESP(player)
+                end)
+            end
+        end)
+    else
+        for _, esp in pairs(PlayerEspConnections) do
+            if esp and esp.Parent then
+                esp:Destroy()
+            end
+        end
+        PlayerEspConnections = {}
+    end
+end
+
+-- ========================================================
+-- FUNGSI SERVER HOP
+-- ========================================================
+local function serverHop()
+    pcall(function()
+        local TeleportService = game:GetService("TeleportService")
+        local currentPlaceId = game.PlaceId
+        local allServers = TeleportService:GetPlayerPlaceInstanceAsync(currentPlaceId)
+        
+        local targetServer = nil
+        for _, server in ipairs(allServers) do
+            if server[1] ~= game.JobId and server[2] == 1 then
+                targetServer = server[1]
+                break
+            end
+        end
+        
+        if targetServer then
+            TeleportService:TeleportToPlaceInstance(currentPlaceId, targetServer, LocalPlayer)
+        else
+            showScreenBroadcast("Tidak ada server dengan 1 player ditemukan!")
+        end
+    end)
 end
 
 -- ========================================================
@@ -411,7 +673,7 @@ createMainMenu = function()
         OpenBtnStroke.Color = rainbowColor
     end)  
 
-    -- SIDEBAR (SCRIPT, PREDIKSI, & ADMIN ONLY)
+    -- SIDEBAR (SCRIPT, PREDIKSI, ADMIN ONLY, TAMPILAN)
     local NavFrame = Instance.new("Frame")
     NavFrame.Size = UDim2.new(0, 110, 0, 230)
     NavFrame.Position = UDim2.new(0, 12, 0, 105)
@@ -446,7 +708,7 @@ createMainMenu = function()
     PrediksiTabCorner.CornerRadius = UDim.new(0, 10)
     PrediksiTabCorner.Parent = PrediksiTabBtn
 
-    -- TOMBOL ADMIN ONLY (DIPINDAHKAN KE ATAS MENGGANTIKAN POSISI ADMIN)
+    -- TOMBOL ADMIN ONLY
     local AdminOnlyTabBtn = Instance.new("TextButton")
     AdminOnlyTabBtn.Size = UDim2.new(1, 0, 0, 35)
     AdminOnlyTabBtn.Position = UDim2.new(0, 0, 0, 84) 
@@ -460,6 +722,21 @@ createMainMenu = function()
     local AdminOnlyTabCorner = Instance.new("UICorner")
     AdminOnlyTabCorner.CornerRadius = UDim.new(0, 10)
     AdminOnlyTabCorner.Parent = AdminOnlyTabBtn
+
+    -- TOMBOL TAMPILAN (BARU)
+    local TampilanTabBtn = Instance.new("TextButton")
+    TampilanTabBtn.Size = UDim2.new(1, 0, 0, 35)
+    TampilanTabBtn.Position = UDim2.new(0, 0, 0, 126) 
+    TampilanTabBtn.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    TampilanTabBtn.Text = "TAMPILAN"
+    TampilanTabBtn.TextColor3 = Color3.fromRGB(130, 0, 255)
+    TampilanTabBtn.Font = Enum.Font.FredokaOne
+    TampilanTabBtn.TextSize = 13
+    TampilanTabBtn.Parent = NavFrame
+
+    local TampilanTabCorner = Instance.new("UICorner")
+    TampilanTabCorner.CornerRadius = UDim.new(0, 10)
+    TampilanTabCorner.Parent = TampilanTabBtn
 
     local Divider = Instance.new("Frame")
     Divider.Size = UDim2.new(0, 3, 0, 210)
@@ -651,23 +928,320 @@ createMainMenu = function()
         end
     end)
 
+    -- ========================================================
+    -- KONTEN TAMPILAN (FITUR BARU)
+    -- ========================================================
+    local TampilanContent = Instance.new("Frame")
+    TampilanContent.Size = UDim2.new(0, 510, 0, 230)
+    TampilanContent.Position = UDim2.new(0, 145, 0, 95)
+    TampilanContent.BackgroundTransparency = 1
+    TampilanContent.Visible = false
+    TampilanContent.Parent = MainFrame
+
+    -- FPS 15
+    local Fps15Frame = Instance.new("Frame")
+    Fps15Frame.Size = UDim2.new(0, 230, 0, 40)
+    Fps15Frame.Position = UDim2.new(0, 10, 0, 10)
+    Fps15Frame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    Fps15Frame.Parent = TampilanContent
+
+    local Fps15Corner = Instance.new("UICorner")
+    Fps15Corner.CornerRadius = UDim.new(0, 10)
+    Fps15Corner.Parent = Fps15Frame
+
+    local Fps15Label = Instance.new("TextLabel")
+    Fps15Label.Size = UDim2.new(0, 180, 1, 0)
+    Fps15Label.Position = UDim2.new(0, 10, 0, 0)
+    Fps15Label.BackgroundTransparency = 1
+    Fps15Label.Font = Enum.Font.FredokaOne
+    Fps15Label.TextSize = 18
+    Fps15Label.TextColor3 = Color3.fromRGB(130, 0, 255)
+    Fps15Label.Text = "Fps15"
+    Fps15Label.TextXAlignment = Enum.TextXAlignment.Left
+    Fps15Label.Parent = Fps15Frame
+
+    local Fps15Check = Instance.new("TextLabel")
+    Fps15Check.Size = UDim2.new(0, 30, 0, 30)
+    Fps15Check.Position = UDim2.new(1, -40, 0.5, -15)
+    Fps15Check.BackgroundTransparency = 1
+    Fps15Check.Font = Enum.Font.FredokaOne
+    Fps15Check.TextSize = 28
+    Fps15Check.TextColor3 = Color3.fromRGB(0, 255, 0)
+    Fps15Check.Text = "✓"
+    Fps15Check.Visible = false
+    Fps15Check.Parent = Fps15Frame
+
+    local Fps15Btn = Instance.new("TextButton")
+    Fps15Btn.Size = UDim2.new(1, 0, 1, 0)
+    Fps15Btn.BackgroundTransparency = 1
+    Fps15Btn.Text = ""
+    Fps15Btn.Parent = Fps15Frame
+
+    Fps15Btn.MouseButton1Click:Connect(function()
+        Fps15Enabled = not Fps15Enabled
+        toggleFps15(Fps15Enabled)
+        Fps15Check.Visible = Fps15Enabled
+    end)
+
+    -- KEGELAPAN
+    local KegelapanFrame = Instance.new("Frame")
+    KegelapanFrame.Size = UDim2.new(0, 230, 0, 70)
+    KegelapanFrame.Position = UDim2.new(0, 10, 0, 60)
+    KegelapanFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    KegelapanFrame.Parent = TampilanContent
+
+    local KegelapanCorner = Instance.new("UICorner")
+    KegelapanCorner.CornerRadius = UDim.new(0, 10)
+    KegelapanCorner.Parent = KegelapanFrame
+
+    local KegelapanLabel = Instance.new("TextLabel")
+    KegelapanLabel.Size = UDim2.new(1, 0, 0, 25)
+    KegelapanLabel.Position = UDim2.new(0, 0, 0, 5)
+    KegelapanLabel.BackgroundTransparency = 1
+    KegelapanLabel.Font = Enum.Font.FredokaOne
+    KegelapanLabel.TextSize = 18
+    KegelapanLabel.TextColor3 = Color3.fromRGB(130, 0, 255)
+    KegelapanLabel.Text = "Kegelapan"
+    KegelapanLabel.Parent = KegelapanFrame
+
+    local KegelapanSliderBg = Instance.new("Frame")
+    KegelapanSliderBg.Size = UDim2.new(0, 190, 0, 10)
+    KegelapanSliderBg.Position = UDim2.new(0.5, -95, 0, 35)
+    KegelapanSliderBg.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    KegelapanSliderBg.Parent = KegelapanFrame
+
+    local KegelapanSliderCorner = Instance.new("UICorner")
+    KegelapanSliderCorner.CornerRadius = UDim.new(0, 5)
+    KegelapanSliderCorner.Parent = KegelapanSliderBg
+
+    local KegelapanSliderFill = Instance.new("Frame")
+    KegelapanSliderFill.Size = UDim2.new(KegelapanValue, 0, 1, 0)
+    KegelapanSliderFill.BackgroundColor3 = Color3.fromRGB(130, 0, 255)
+    KegelapanSliderFill.BorderSizePixel = 0
+    KegelapanSliderFill.Parent = KegelapanSliderBg
+
+    local KegelapanSliderBtn = Instance.new("TextButton")
+    KegelapanSliderBtn.Size = UDim2.new(1, 0, 1, 0)
+    KegelapanSliderBtn.BackgroundTransparency = 1
+    KegelapanSliderBtn.Text = ""
+    KegelapanSliderBtn.Parent = KegelapanSliderBg
+
+    local KegelapanValueLabel = Instance.new("TextLabel")
+    KegelapanValueLabel.Size = UDim2.new(0, 50, 0, 20)
+    KegelapanValueLabel.Position = UDim2.new(0.5, -25, 0, 50)
+    KegelapanValueLabel.BackgroundTransparency = 1
+    KegelapanValueLabel.Font = Enum.Font.FredokaOne
+    KegelapanValueLabel.TextSize = 14
+    KegelapanValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    KegelapanValueLabel.Text = math.floor(KegelapanValue * 100) .. "%"
+    KegelapanValueLabel.Parent = KegelapanFrame
+
+    local kegelapanDragging = false
+    KegelapanSliderBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            kegelapanDragging = true
+        end
+    end)
+
+    KegelapanSliderBtn.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            kegelapanDragging = false
+        end
+    end)
+
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if kegelapanDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local mousePos = input.Position.X
+            local sliderPos = KegelapanSliderBg.AbsolutePosition.X
+            local sliderWidth = KegelapanSliderBg.AbsoluteSize.X
+            local scale = math.clamp((mousePos - sliderPos) / sliderWidth, 0, 1)
+            KegelapanSliderFill.Size = UDim2.new(scale, 0, 1, 0)
+            setKegelapan(scale)
+            KegelapanValueLabel.Text = math.floor(scale * 100) .. "%"
+        end
+    end)
+
+    -- AUTO TREADMILL
+    local AutoTreadmillFrame = Instance.new("Frame")
+    AutoTreadmillFrame.Size = UDim2.new(0, 230, 0, 40)
+    AutoTreadmillFrame.Position = UDim2.new(0, 10, 0, 140)
+    AutoTreadmillFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    AutoTreadmillFrame.Parent = TampilanContent
+
+    local AutoTreadmillCorner = Instance.new("UICorner")
+    AutoTreadmillCorner.CornerRadius = UDim.new(0, 10)
+    AutoTreadmillCorner.Parent = AutoTreadmillFrame
+
+    local AutoTreadmillLabel = Instance.new("TextLabel")
+    AutoTreadmillLabel.Size = UDim2.new(0, 180, 1, 0)
+    AutoTreadmillLabel.Position = UDim2.new(0, 10, 0, 0)
+    AutoTreadmillLabel.BackgroundTransparency = 1
+    AutoTreadmillLabel.Font = Enum.Font.FredokaOne
+    AutoTreadmillLabel.TextSize = 18
+    AutoTreadmillLabel.TextColor3 = Color3.fromRGB(130, 0, 255)
+    AutoTreadmillLabel.Text = "Auto Treadmil"
+    AutoTreadmillLabel.TextXAlignment = Enum.TextXAlignment.Left
+    AutoTreadmillLabel.Parent = AutoTreadmillFrame
+
+    local AutoTreadmillCheck = Instance.new("TextLabel")
+    AutoTreadmillCheck.Size = UDim2.new(0, 30, 0, 30)
+    AutoTreadmillCheck.Position = UDim2.new(1, -40, 0.5, -15)
+    AutoTreadmillCheck.BackgroundTransparency = 1
+    AutoTreadmillCheck.Font = Enum.Font.FredokaOne
+    AutoTreadmillCheck.TextSize = 28
+    AutoTreadmillCheck.TextColor3 = Color3.fromRGB(0, 255, 0)
+    AutoTreadmillCheck.Text = "✓"
+    AutoTreadmillCheck.Visible = false
+    AutoTreadmillCheck.Parent = AutoTreadmillFrame
+
+    local AutoTreadmillBtn = Instance.new("TextButton")
+    AutoTreadmillBtn.Size = UDim2.new(1, 0, 1, 0)
+    AutoTreadmillBtn.BackgroundTransparency = 1
+    AutoTreadmillBtn.Text = ""
+    AutoTreadmillBtn.Parent = AutoTreadmillFrame
+
+    AutoTreadmillBtn.MouseButton1Click:Connect(function()
+        AutoTreadmillEnabled = not AutoTreadmillEnabled
+        toggleAutoTreadmill(AutoTreadmillEnabled)
+        AutoTreadmillCheck.Visible = AutoTreadmillEnabled
+    end)
+
+    -- EGG ESP
+    local EggEspFrame = Instance.new("Frame")
+    EggEspFrame.Size = UDim2.new(0, 230, 0, 40)
+    EggEspFrame.Position = UDim2.new(0, 260, 0, 10)
+    EggEspFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    EggEspFrame.Parent = TampilanContent
+
+    local EggEspCorner = Instance.new("UICorner")
+    EggEspCorner.CornerRadius = UDim.new(0, 10)
+    EggEspCorner.Parent = EggEspFrame
+
+    local EggEspLabel = Instance.new("TextLabel")
+    EggEspLabel.Size = UDim2.new(0, 180, 1, 0)
+    EggEspLabel.Position = UDim2.new(0, 10, 0, 0)
+    EggEspLabel.BackgroundTransparency = 1
+    EggEspLabel.Font = Enum.Font.FredokaOne
+    EggEspLabel.TextSize = 18
+    EggEspLabel.TextColor3 = Color3.fromRGB(130, 0, 255)
+    EggEspLabel.Text = "Egg Esp"
+    EggEspLabel.TextXAlignment = Enum.TextXAlignment.Left
+    EggEspLabel.Parent = EggEspFrame
+
+    local EggEspCheck = Instance.new("TextLabel")
+    EggEspCheck.Size = UDim2.new(0, 30, 0, 30)
+    EggEspCheck.Position = UDim2.new(1, -40, 0.5, -15)
+    EggEspCheck.BackgroundTransparency = 1
+    EggEspCheck.Font = Enum.Font.FredokaOne
+    EggEspCheck.TextSize = 28
+    EggEspCheck.TextColor3 = Color3.fromRGB(0, 255, 0)
+    EggEspCheck.Text = "✓"
+    EggEspCheck.Visible = false
+    EggEspCheck.Parent = EggEspFrame
+
+    local EggEspBtn = Instance.new("TextButton")
+    EggEspBtn.Size = UDim2.new(1, 0, 1, 0)
+    EggEspBtn.BackgroundTransparency = 1
+    EggEspBtn.Text = ""
+    EggEspBtn.Parent = EggEspFrame
+
+    EggEspBtn.MouseButton1Click:Connect(function()
+        EggEspEnabled = not EggEspEnabled
+        toggleEggEsp(EggEspEnabled)
+        EggEspCheck.Visible = EggEspEnabled
+    end)
+
+    -- PLAYER ESP
+    local PlayerEspFrame = Instance.new("Frame")
+    PlayerEspFrame.Size = UDim2.new(0, 230, 0, 40)
+    PlayerEspFrame.Position = UDim2.new(0, 260, 0, 60)
+    PlayerEspFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    PlayerEspFrame.Parent = TampilanContent
+
+    local PlayerEspCorner = Instance.new("UICorner")
+    PlayerEspCorner.CornerRadius = UDim.new(0, 10)
+    PlayerEspCorner.Parent = PlayerEspFrame
+
+    local PlayerEspLabel = Instance.new("TextLabel")
+    PlayerEspLabel.Size = UDim2.new(0, 180, 1, 0)
+    PlayerEspLabel.Position = UDim2.new(0, 10, 0, 0)
+    PlayerEspLabel.BackgroundTransparency = 1
+    PlayerEspLabel.Font = Enum.Font.FredokaOne
+    PlayerEspLabel.TextSize = 18
+    PlayerEspLabel.TextColor3 = Color3.fromRGB(130, 0, 255)
+    PlayerEspLabel.Text = "Player Esp"
+    PlayerEspLabel.TextXAlignment = Enum.TextXAlignment.Left
+    PlayerEspLabel.Parent = PlayerEspFrame
+
+    local PlayerEspCheck = Instance.new("TextLabel")
+    PlayerEspCheck.Size = UDim2.new(0, 30, 0, 30)
+    PlayerEspCheck.Position = UDim2.new(1, -40, 0.5, -15)
+    PlayerEspCheck.BackgroundTransparency = 1
+    PlayerEspCheck.Font = Enum.Font.FredokaOne
+    PlayerEspCheck.TextSize = 28
+    PlayerEspCheck.TextColor3 = Color3.fromRGB(0, 255, 0)
+    PlayerEspCheck.Text = "✓"
+    PlayerEspCheck.Visible = false
+    PlayerEspCheck.Parent = PlayerEspFrame
+
+    local PlayerEspBtn = Instance.new("TextButton")
+    PlayerEspBtn.Size = UDim2.new(1, 0, 1, 0)
+    PlayerEspBtn.BackgroundTransparency = 1
+    PlayerEspBtn.Text = ""
+    PlayerEspBtn.Parent = PlayerEspFrame
+
+    PlayerEspBtn.MouseButton1Click:Connect(function()
+        PlayerEspEnabled = not PlayerEspEnabled
+        togglePlayerEsp(PlayerEspEnabled)
+        PlayerEspCheck.Visible = PlayerEspEnabled
+    end)
+
+    -- SERVER HOP BUTTON
+    local ServerHopBtn = Instance.new("TextButton")
+    ServerHopBtn.Size = UDim2.new(0, 230, 0, 50)
+    ServerHopBtn.Position = UDim2.new(0, 260, 0, 110)
+    ServerHopBtn.BackgroundColor3 = Color3.fromRGB(130, 0, 255)
+    ServerHopBtn.Text = "Server Hop"
+    ServerHopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ServerHopBtn.Font = Enum.Font.FredokaOne
+    ServerHopBtn.TextSize = 24
+    ServerHopBtn.Parent = TampilanContent
+
+    local ServerHopCorner = Instance.new("UICorner")
+    ServerHopCorner.CornerRadius = UDim.new(0, 15)
+    ServerHopCorner.Parent = ServerHopBtn
+
+    ServerHopBtn.MouseButton1Click:Connect(function()
+        serverHop()
+    end)
+
     -- EVENT perpindahan TAB
     ScriptTabBtn.MouseButton1Click:Connect(function()
         ScriptContent.Visible = true
         PrediksiContent.Visible = false
         AdminOnlyContent.Visible = false
+        TampilanContent.Visible = false
     end)
 
     PrediksiTabBtn.MouseButton1Click:Connect(function()
         ScriptContent.Visible = false
         PrediksiContent.Visible = true
         AdminOnlyContent.Visible = false
+        TampilanContent.Visible = false
     end)
 
     AdminOnlyTabBtn.MouseButton1Click:Connect(function()
         ScriptContent.Visible = false
         PrediksiContent.Visible = false
         AdminOnlyContent.Visible = true
+        TampilanContent.Visible = false
+    end)
+
+    TampilanTabBtn.MouseButton1Click:Connect(function()
+        ScriptContent.Visible = false
+        PrediksiContent.Visible = false
+        AdminOnlyContent.Visible = false
+        TampilanContent.Visible = true
     end)
 
     -- TEXT TYPING
