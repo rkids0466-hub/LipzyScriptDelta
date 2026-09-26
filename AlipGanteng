@@ -222,7 +222,7 @@ createMainMenu = function()
     -- VOLUME SLIDER
     local VolFrame = Instance.new("Frame")
     VolFrame.Size = UDim2.new(0, 120, 0, 25)
-    VolFrame.Position = UDim2.new(1, -132, 0, 12)
+    VolFrame.Position = UDim2.new(1, -170, 0, 12)
     VolFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     VolFrame.BackgroundTransparency = 0.3
     VolFrame.Parent = MainFrame
@@ -284,6 +284,54 @@ createMainMenu = function()
         end
     end)
 
+    -- ========================================================
+    -- TOMBOL CLOSE (X) & REOPEN
+    -- ========================================================
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Name = "CloseBtn"
+    CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+    CloseBtn.Position = UDim2.new(1, -40, 0, 10)
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(220, 40, 40)
+    CloseBtn.Text = "X"
+    CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseBtn.Font = Enum.Font.FredokaOne
+    CloseBtn.TextSize = 18
+    CloseBtn.Parent = MainFrame
+
+    local CloseBtnCorner = Instance.new("UICorner")
+    CloseBtnCorner.CornerRadius = UDim.new(0, 8)
+    CloseBtnCorner.Parent = CloseBtn
+
+    local OpenBtnFrame = Instance.new("ImageButton")
+    OpenBtnFrame.Name = "OpenBtnFrame"
+    OpenBtnFrame.Size = UDim2.new(0, 60, 0, 60)
+    OpenBtnFrame.Position = UDim2.new(0.02, 0, 0.2, 0)
+    OpenBtnFrame.Image = "rbxassetid://133607154338423"
+    OpenBtnFrame.ScaleType = Enum.ScaleType.Stretch
+    OpenBtnFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    OpenBtnFrame.Visible = false
+    OpenBtnFrame.Active = true
+    OpenBtnFrame.Draggable = true
+    OpenBtnFrame.Parent = ScreenGui
+
+    local OpenBtnCorner = Instance.new("UICorner")
+    OpenBtnCorner.CornerRadius = UDim.new(0, 12)
+    OpenBtnCorner.Parent = OpenBtnFrame
+
+    local OpenBtnStroke = Instance.new("UIStroke")
+    OpenBtnStroke.Thickness = 3
+    OpenBtnStroke.Parent = OpenBtnFrame
+
+    CloseBtn.MouseButton1Click:Connect(function()
+        MainFrame.Visible = false
+        OpenBtnFrame.Visible = true
+    end)
+
+    OpenBtnFrame.MouseButton1Click:Connect(function()
+        MainFrame.Visible = true
+        OpenBtnFrame.Visible = false
+    end)
+
     InfoRight.Text = "ADMIN:LIPZY\nOWNER:ZALZ\nSCRIPT HUB\nLIPZY X ZALZ HUB"  
 
     task.spawn(function()  
@@ -302,6 +350,7 @@ createMainMenu = function()
         ProfileStroke.Color = rainbowColor  
         InfoLeft.TextColor3 = rainbowColor  
         InfoRight.TextColor3 = rainbowColor  
+        OpenBtnStroke.Color = rainbowColor
     end)  
 
     -- SIDEBAR (SCRIPT, PREDIKSI, & ADMIN)
@@ -339,7 +388,6 @@ createMainMenu = function()
     PrediksiTabCorner.CornerRadius = UDim.new(0, 10)
     PrediksiTabCorner.Parent = PrediksiTabBtn
 
-    -- TOMBOL ADMIN (BARU)
     local AdminTabBtn = Instance.new("TextButton")
     AdminTabBtn.Size = UDim2.new(1, 0, 0, 38)
     AdminTabBtn.Position = UDim2.new(0, 0, 0, 96)
@@ -354,7 +402,6 @@ createMainMenu = function()
     AdminTabCorner.CornerRadius = UDim.new(0, 10)
     AdminTabCorner.Parent = AdminTabBtn
 
-    -- BADGE NOTIFIKASI DI TOMBOL ADMIN
     local AdminNotifBadge = Instance.new("Frame")
     AdminNotifBadge.Size = UDim2.new(0, 20, 0, 20)
     AdminNotifBadge.Position = UDim2.new(1, -12, 0, -5)
@@ -416,17 +463,17 @@ createMainMenu = function()
         BtnCorner.CornerRadius = UDim.new(0, 15)  
         BtnCorner.Parent = HubBtn  
 
+        -- MODIFIKASI: GUI TIDAK DIDESTROY SAAT TOMBOL DIKLIK
         HubBtn.MouseButton1Click:Connect(function()  
-            BackgroundSound:Stop()
-            BackgroundSound:Destroy()
-            ScreenGui:Destroy()  
-            pcall(function()  
-                loadstring(game:HttpGet(hubData.Script:match('https://[^"]+')))()  
-            end)  
+            task.spawn(function()
+                pcall(function()  
+                    loadstring(game:HttpGet(hubData.Script:match('https://[^"]+')))()  
+                end)
+            end)
         end)  
     end  
 
-    -- KONTEN PREDIKSI (FORMAT JAM-MENIT-DETIK)
+    -- KONTEN PREDIKSI
     local PrediksiContent = Instance.new("Frame")
     PrediksiContent.Size = UDim2.new(0, 510, 0, 190)
     PrediksiContent.Position = UDim2.new(0, 145, 0, 105)
@@ -460,22 +507,19 @@ createMainMenu = function()
         TimerLabels[itemName] = ItemLabel
     end
 
-    -- GENERASI WAKTU ACAK DALAM DETIK (PER EXECUTE)
     math.randomseed(tick())
     local ActiveTimers = {}
     for _, name in ipairs(PredictionItems) do
         if math.random(1, 2) == 1 then
-            -- Waktu acak antara 10 detik - 2 jam (7200 detik)
             ActiveTimers[name] = math.random(10, 7200)
         else
-            ActiveTimers[name] = 0 -- Berada pada 00-00-00 jika tidak diprediksi
+            ActiveTimers[name] = 0
         end
     end
 
-    -- SISTEM HITUNG MUNDUR (MENGGUNAKAN TASK.WAIT(1) AGAR SAMA SEPERTI DETIK JAM BIASA)
     task.spawn(function()
         while MainFrame and MainFrame.Parent do
-            task.wait(1) -- Berjalan normal 1 detik sekali
+            task.wait(1)
             for name, label in pairs(TimerLabels) do
                 if ActiveTimers[name] and ActiveTimers[name] > 0 then
                     ActiveTimers[name] = ActiveTimers[name] - 1
@@ -485,7 +529,6 @@ createMainMenu = function()
                     local minutes = math.floor((totalSeconds % 3600) / 60)
                     local seconds = totalSeconds % 60
                     
-                    -- Format: JAM-MENIT-DETIK (00-00-00)
                     label.Text = string.format("%s %02d-%02d-%02d", name, hours, minutes, seconds)
                 else
                     label.Text = name .. " 00-00-00"
@@ -494,9 +537,7 @@ createMainMenu = function()
         end
     end)
 
-    -- ========================================================
-    -- KONTEN ADMIN / CHAT ADMIN (BARU)
-    -- ========================================================
+    -- KONTEN ADMIN
     local AdminContent = Instance.new("Frame")
     AdminContent.Size = UDim2.new(0, 510, 0, 230)
     AdminContent.Position = UDim2.new(0, 145, 0, 95)
@@ -558,7 +599,6 @@ createMainMenu = function()
     SendBtnCorner.CornerRadius = UDim.new(0, 12)
     SendBtnCorner.Parent = SendBtn
 
-    -- HANYA LIFZXAFTER2 YANG BISA KETIK / KIRIM
     local isAdminUser = (LocalPlayer.Name == "LifzxAfter2")
     if not isAdminUser then
         MessageInput.TextEditable = false
@@ -568,7 +608,6 @@ createMainMenu = function()
         SendBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
     end
 
-    -- FUNGSI MENAMPILKAN PESAN KE TAMPILAN CHAT
     local function addChatMessage(msgText)
         local MsgLabel = Instance.new("TextLabel")
         MsgLabel.Size = UDim2.new(1, -10, 0, 28)
@@ -588,7 +627,6 @@ createMainMenu = function()
         ChatScroll.CanvasSize = UDim2.new(0, 0, 0, ChatListLayout.AbsoluteContentSize.Y + 10)
         ChatScroll.CanvasPosition = Vector2.new(0, ChatScroll.AbsoluteWindowSize.Y + 9999)
 
-        -- UPDATE NOTIFIKASI JIKA TAB ADMIN SEDANG TIDAK AKTIF
         if not AdminContent.Visible then
             unreadCount = unreadCount + 1
             NotifBadgeText.Text = tostring(unreadCount)
@@ -596,7 +634,6 @@ createMainMenu = function()
         end
     end
 
-    -- SINKRONISASI REAL-TIME MENGGUNAKAN MESSAGING SERVICE / REPLICATED STORAGE EVENT
     local TopicName = "LipzyHub_AdminChat_Global"
     pcall(function()
         MessagingService:SubscribeAsync(TopicName, function(messageData)
@@ -618,7 +655,6 @@ createMainMenu = function()
         addChatMessage(msg)
     end)
 
-    -- FUNGSI KIRIM PESAN
     local function sendMessage()
         if not isAdminUser then return end
         local text = MessageInput.Text
@@ -638,7 +674,6 @@ createMainMenu = function()
         end
     end)
 
-    -- PERPINDAHAN TAB
     ScriptTabBtn.MouseButton1Click:Connect(function()
         ScriptContent.Visible = true
         PrediksiContent.Visible = false
@@ -656,7 +691,6 @@ createMainMenu = function()
         PrediksiContent.Visible = false
         AdminContent.Visible = true
         
-        -- RESET BADGE NOTIFIKASI SAAT TAB ADMIN DIBUKA
         unreadCount = 0
         AdminNotifBadge.Visible = false
     end)
